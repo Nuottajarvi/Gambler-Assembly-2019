@@ -1,12 +1,18 @@
 #version 110
 uniform float iTime;
 varying vec2 uv;
+varying float z;
+varying mat3 iRot;
+
+const float EPSILON = 0.01;
 const float PI = 3.14159;
 
 const float ar = 1.8;
 
 const vec3 white = vec3(0.8);
 const vec3 red = vec3(142./255., 19./255., 12./255.);
+
+varying float face;
 
 struct chipM {
 	vec4 h;
@@ -50,5 +56,15 @@ vec3 chip(vec3 chipCol, vec2 uv) {
 
 void main() {
 	vec3 col = chip(red, uv);
-    gl_FragColor = vec4(col, 1.);
+	vec3 normal;
+	if (length(uv) + EPSILON > 1. ) {
+		normal = vec3(uv.x, uv.y, 0.);
+	} else {
+		normal = vec3(0., 0., 1. * sign(face));
+	}
+	normal = iRot * normal;
+	vec3 lightDir = vec3(0., 1., 0.);
+	float diff = max(dot(normal, lightDir), 0.0);
+	float light = diff * .5 + .5;
+    gl_FragColor = vec4((col * light) - vec3(z * z * .033) * .1, 1.);
 }

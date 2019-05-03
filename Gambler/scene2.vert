@@ -6,6 +6,9 @@ attribute vec2 vTex;
 attribute vec3 vWorldPos;
 uniform float iTime;
 varying vec2 uv;
+varying float z;
+varying mat3 iRot;
+varying float face;
 
 mat3 rotationMatrixY(float rad) {
     return mat3(
@@ -38,11 +41,13 @@ float random(vec3 co){
 void main()
 {
 	float t = iTime + 5.;
-	vec3 locObj = 
-		rotationMatrixY(t * random(vWorldPos.xyz)) *
-		rotationMatrixX(t * random(vWorldPos.yxz)) *
-		rotationMatrixZ(t * random(vWorldPos.zyx)) *
-		vPos;
-    gl_Position = MVP * vec4(locObj + vWorldPos, 1.0);
+	iRot = rotationMatrixY(random(vWorldPos.xyz)) *
+		rotationMatrixX(t * (random(vWorldPos.yxz) + 0.2)) *
+		rotationMatrixZ(t * random(vWorldPos.zyx));
+	vec3 locObj = iRot * vPos;
+	vec3 zDrive = vec3(0., 0., iTime * iTime * .33);
+    gl_Position = MVP * vec4(locObj + vWorldPos + zDrive, 1.0);
     uv = vTex;
+	z = vWorldPos.z + zDrive.z;
+	face = vPos.z;
 }

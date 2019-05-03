@@ -44,12 +44,12 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 void createChip(Vec3 pos)
 {
 	const float w = 0.5f; //width
-	const float t = 0.1f; //thickness
+	const float t = 0.1f / 2.0f; //thickness
 
 	int a = vertices.size(); //start offset for indices
 
-	vertices.push_back({ 0.f, 0.f, 0.f,		0.f, 0.f,	 pos.x, pos.y, pos.z });
-	vertices.push_back({ 0.f, 0.f, t,		0.f, 0.f,	 pos.x, pos.y, pos.z });
+	vertices.push_back({ 0.f, 0.f, -t,		0.f, 0.f,	 pos.x, pos.y, pos.z });
+	vertices.push_back({ 0.f, 0.f,  t,		0.f, 0.f,	 pos.x, pos.y, pos.z });
 
 	int corners = 30;
 	for (int i = 0; i < corners; i++) {
@@ -57,7 +57,7 @@ void createChip(Vec3 pos)
 		vertices.push_back({
 			static_cast<float>(cos(angle)) * w, 
 			static_cast<float>(sin(angle)) * w,
-			0.f,
+			-t,
 			static_cast<float>(cos(angle)),
 			static_cast<float>(sin(angle)),
 			pos.x, pos.y, pos.z
@@ -118,9 +118,15 @@ void createChip(Vec3 pos)
 
 int main(void)
 {
-	createChip({ 0.f, 0.f, -4.f});
-	createChip({ 1.f, .0f, -3.f });
-	createChip({ -1.f, 0.f, -2.f });
+	for (int i = 0; i < 250; i++) {
+		float rx = ((float)rand() / (RAND_MAX));
+		float ry = ((float)rand() / (RAND_MAX));
+		float rz = ((float)rand() / (RAND_MAX));
+
+		std::cout << rx << " " << ry << " " << rz << std::endl;
+
+		createChip({ -10.f + rx * 20.f, -8.f + ry * 16.f, -rz * 30.f - 2.f});
+	}
 
 	GLFWwindow* window;
 	GLuint vertex_buffer, element_buffer, vertex_shader, fragment_shader, program;
@@ -143,6 +149,9 @@ int main(void)
 	
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 
 	//Vertices
 	glGenBuffers(1, &vertex_buffer);
@@ -206,7 +215,7 @@ int main(void)
 	while (!glfwWindowShouldClose(window))
 	{
 		float time = (float)glfwGetTime();
-		std::cout << 1.f / (time - lastTime) << std::endl;
+		//std::cout << 1.f / (time - lastTime) << std::endl;
 		lastTime = time;
 		float ratio;
 		int width, height;
@@ -214,9 +223,9 @@ int main(void)
 		glfwGetFramebufferSize(window, &width, &height);
 		ratio = width / (float)height;
 		glViewport(0, 0, width, height);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		mat4x4_identity(m);
-		mat4x4_perspective(p, -1.f, 1.8f, 0.01f, 10.f);
+		mat4x4_perspective(p, -1.f, 1.8f, 0.01f, 50.f);
 		mat4x4_mul(mvp, p, m);
 		glUseProgram(program);
 		glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)mvp);
