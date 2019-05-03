@@ -147,11 +147,15 @@
   <ItemGroup>
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="scene1.cpp" />
+    <ClCompile Include="scene2.cpp" />
     <ClCompile Include="shaderReader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="scene1.frag" />
     <None Include="scene1.vert" />
+    <None Include="scene2.frag" />
+    <None Include="scene2.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shaderReader.h" />

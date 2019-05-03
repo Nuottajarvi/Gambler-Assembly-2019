@@ -24,12 +24,24 @@
     <ClCompile Include="shaderReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="scene2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scene1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="scene1.vert">
       <Filter>Source Files</Filter>
     </None>
     <None Include="scene1.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="scene2.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="scene2.vert">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
