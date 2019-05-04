@@ -41,6 +41,19 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
+void createBg() {
+	static std::vector<Vertex> bgVertices = {
+		{ -27.f, -15.f, -25.f,		 0.f,  0.f,		0.f, 0.f, 0.f },
+		{ -27.f,  15.f, -25.f,		 0.f,  1.f,		0.f, 0.f, 0.f },
+		{  27.f,  15.f, -25.f,		 1.8f, 1.f,		0.f, 0.f, 0.f },
+		{  27.f, -15.f, -25.f,		 1.8f, 0.f,		0.f, 0.f, 0.f }
+	};
+	vertices.insert(vertices.end(), bgVertices.begin(), bgVertices.end());
+
+	static std::vector<unsigned int>  bgIndices = { 0,1,2,2,3,0 };
+	indices.insert(indices.end(), bgIndices.begin(), bgIndices.end());
+}
+
 void createChip(Vec3 pos)
 {
 	const float w = 0.5f; //width
@@ -118,12 +131,13 @@ void createChip(Vec3 pos)
 
 int main(void)
 {
+
+	createBg();
+
 	for (int i = 0; i < 250; i++) {
 		float rx = ((float)rand() / (RAND_MAX));
 		float ry = ((float)rand() / (RAND_MAX));
 		float rz = ((float)rand() / (RAND_MAX));
-
-		std::cout << rx << " " << ry << " " << rz << std::endl;
 
 		createChip({ -10.f + rx * 20.f, -8.f + ry * 16.f, -rz * 30.f - 2.f});
 	}
@@ -153,12 +167,12 @@ int main(void)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	//Vertices
+	//vertices
 	glGenBuffers(1, &vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
-	//Indices
+	//indices
 	glGenBuffers(1, &element_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
@@ -194,6 +208,8 @@ int main(void)
 	glUniform1f(itime_location, glfwGetTime());
 
 	GLint isLinked = 0;
+
+	//ERROR CHECKING
 	glGetProgramiv(program, GL_LINK_STATUS, &isLinked);
 	if (isLinked == GL_FALSE)
 	{

@@ -3,6 +3,7 @@ uniform float iTime;
 varying vec2 uv;
 varying float z;
 varying mat3 iRot;
+varying float isBg;
 
 const float EPSILON = 0.01;
 const float PI = 3.14159;
@@ -55,16 +56,25 @@ vec3 chip(vec3 chipCol, vec2 uv) {
 }
 
 void main() {
-	vec3 col = chip(red, uv);
-	vec3 normal;
-	if (length(uv) + EPSILON > 1. ) {
-		normal = vec3(uv.x, uv.y, 0.);
+	float bgT = iTime * 0.1;
+	float shade = min(bgT*bgT, 0.8);
+	vec3 bgCol = vec3(shade, min(shade * 1.5, 0.8), shade);
+	if(isBg > 0.5) {
+		gl_FragColor = vec4(bgCol, 1.);
 	} else {
-		normal = vec3(0., 0., 1. * sign(face));
+		vec3 col = chip(red, uv);
+		vec3 normal;
+		if (length(uv) + EPSILON > 1. ) {
+			normal = vec3(uv.x, uv.y, 0.);
+		} else {
+			normal = vec3(0., 0., 1. * sign(face));
+		}
+		normal = iRot * normal;
+		vec3 lightDir = vec3(0., 1., 0.);
+		float diff = max(dot(normal, lightDir), 0.0);
+		float light = diff * .5 + .5;
+		vec3 lightCol = col * light;
+		vec3 mixedCol = mix(lightCol, bgCol, min(1., z * z * .0033));
+		gl_FragColor = vec4(mixedCol, 1.);
 	}
-	normal = iRot * normal;
-	vec3 lightDir = vec3(0., 1., 0.);
-	float diff = max(dot(normal, lightDir), 0.0);
-	float light = diff * .5 + .5;
-    gl_FragColor = vec4((col * light) - vec3(z * z * .033) * .1, 1.);
 }
