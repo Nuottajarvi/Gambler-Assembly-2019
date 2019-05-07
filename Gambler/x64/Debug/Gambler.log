@@ -1,4 +1,0 @@
-﻿  scene2.cpp
-c:\users\peetu\desktop\koodaus\demo\gambler\gambler\scene2.cpp(24): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\users\peetu\desktop\koodaus\demo\gambler\gambler\scene2.cpp(31): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-  Gambler.vcxproj -> C:\Users\Peetu\Desktop\Koodaus\demo\Gambler\x64\Debug\Gambler.exe
