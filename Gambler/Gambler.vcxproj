@@ -158,7 +158,9 @@
     <None Include="scene2.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="scene2.h" />
     <ClInclude Include="shaderReader.h" />
+    <ClInclude Include="structs.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

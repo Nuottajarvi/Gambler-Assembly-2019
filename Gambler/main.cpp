@@ -6,29 +6,10 @@
 #include <stdio.h>
 #include <math.h>
 #include <iostream>
+#include <string>
 #include "shaderReader.h"
-
-const struct Vec3
-{
-	float x, y, z;
-};
-
-const struct Vertex
-{
-	float x, y, z; //local coordinates
-	float s, t; //texture coordinates
-	float wx, wy, wz; //world object coordinates
-};
-
-static std::vector<Vertex> vertices;
-
-static std::vector<unsigned int> indices;
-
-shaderReader vertexShader = shaderReader("scene2.vert");
-shaderReader fragmentShader = shaderReader("scene2.frag");
-
-static const char* vertex_shader_text = vertexShader.source.c_str();
-static const char* fragment_shader_text = fragmentShader.source.c_str();
+#include "structs.h"
+#include "scene2.h"
 
 static void error_callback(int error, const char* description)
 {
@@ -41,107 +22,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
-void createBg() {
-	static std::vector<Vertex> bgVertices = {
-		{ -27.f, -15.f, -25.f,		 0.f,  0.f,		0.f, 0.f, 0.f },
-		{ -27.f,  15.f, -25.f,		 0.f,  1.f,		0.f, 0.f, 0.f },
-		{  27.f,  15.f, -25.f,		 1.8f, 1.f,		0.f, 0.f, 0.f },
-		{  27.f, -15.f, -25.f,		 1.8f, 0.f,		0.f, 0.f, 0.f }
-	};
-	vertices.insert(vertices.end(), bgVertices.begin(), bgVertices.end());
-
-	static std::vector<unsigned int>  bgIndices = { 0,1,2,2,3,0 };
-	indices.insert(indices.end(), bgIndices.begin(), bgIndices.end());
-}
-
-void createChip(Vec3 pos)
-{
-	const float w = 0.5f; //width
-	const float t = 0.1f / 2.0f; //thickness
-
-	int a = vertices.size(); //start offset for indices
-
-	vertices.push_back({ 0.f, 0.f, -t,		0.f, 0.f,	 pos.x, pos.y, pos.z });
-	vertices.push_back({ 0.f, 0.f,  t,		0.f, 0.f,	 pos.x, pos.y, pos.z });
-
-	int corners = 30;
-	for (int i = 0; i < corners; i++) {
-		float angle = i * (2 * 3.14159) / corners;
-		vertices.push_back({
-			static_cast<float>(cos(angle)) * w, 
-			static_cast<float>(sin(angle)) * w,
-			-t,
-			static_cast<float>(cos(angle)),
-			static_cast<float>(sin(angle)),
-			pos.x, pos.y, pos.z
-		});
-
-		vertices.push_back({
-			static_cast<float>(cos(angle)) * w,
-			static_cast<float>(sin(angle)) * w,
-			t,
-			static_cast<float>(cos(angle)),
-			static_cast<float>(sin(angle)),
-			pos.x, pos.y, pos.z
-		});
-	}
-
-	int indiceCount = 2;
-
-	for (int i = 0; i < corners - 1; i++) {
-		//bottom
-		indices.push_back(a);
-		indices.push_back(a + indiceCount);
-		indices.push_back(a + indiceCount + 2);
-
-		//top
-		indices.push_back(a + 1);
-		indices.push_back(a + indiceCount + 3);
-		indices.push_back(a + indiceCount + 1);
-
-		//side 1
-		indices.push_back(a + indiceCount);
-		indices.push_back(a + indiceCount + 1);
-		indices.push_back(a + indiceCount + 2);
-
-		//side 2
-		indices.push_back(a + indiceCount + 1);
-		indices.push_back(a + indiceCount + 3);
-		indices.push_back(a + indiceCount + 2);
-
-		indiceCount+=2;
-	}
-
-	indices.push_back(a + 0);
-	indices.push_back(a + indiceCount); // 6
-	indices.push_back(a + 2);
-
-	indices.push_back(a + 1);
-	indices.push_back(a + 3);
-	indices.push_back(a + indiceCount + 1); // 7
-
-	indices.push_back(a + indiceCount);
-	indices.push_back(a + indiceCount + 1);
-	indices.push_back(a + 3);
-
-	indices.push_back(a + 3);
-	indices.push_back(a + 2);
-	indices.push_back(a + indiceCount);
-}
-
 int main(void)
 {
-
-	createBg();
-
-	for (int i = 0; i < 250; i++) {
-		float rx = ((float)rand() / (RAND_MAX));
-		float ry = ((float)rand() / (RAND_MAX));
-		float rz = ((float)rand() / (RAND_MAX));
-
-		createChip({ -10.f + rx * 20.f, -8.f + ry * 16.f, -rz * 30.f - 2.f});
-	}
-
 	GLFWwindow* window;
 	GLuint vertex_buffer, element_buffer, vertex_shader, fragment_shader, program;
 	GLint mvp_location, vpos_location, vworldpos_location, vtex_location, itime_location;
@@ -167,15 +49,21 @@ int main(void)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
+	Scene scene = scene2();
+	std::cout << scene.fragmentShader << std::endl;
+
+	const char* vertex_shader_text = scene.vertexShader.c_str();
+	const char* fragment_shader_text = scene.fragmentShader.c_str();
+	
 	//vertices
 	glGenBuffers(1, &vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, scene.vertices.size() * sizeof(Vertex), &scene.vertices[0], GL_STATIC_DRAW);
 
 	//indices
 	glGenBuffers(1, &element_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, scene.indices.size() * sizeof(unsigned int), &scene.indices[0], GL_STATIC_DRAW);
 
 
 	vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -197,13 +85,13 @@ int main(void)
 
 	glEnableVertexAttribArray(vpos_location);
 	glVertexAttribPointer(vpos_location, 3, GL_FLOAT, GL_FALSE,
-		sizeof(vertices[0]), (void*)0);
+		sizeof(scene.vertices[0]), (void*)0);
 	glEnableVertexAttribArray(vtex_location);
 	glVertexAttribPointer(vtex_location, 2, GL_FLOAT, GL_FALSE,
-		sizeof(vertices[0]), (void*)(sizeof(float) * 3));
+		sizeof(scene.vertices[0]), (void*)(sizeof(float) * 3));
 	glEnableVertexAttribArray(vworldpos_location);
 	glVertexAttribPointer(vworldpos_location, 3, GL_FLOAT, GL_FALSE,
-		sizeof(vertices[0]), (void*)(sizeof(float) * 5));
+		sizeof(scene.vertices[0]), (void*)(sizeof(float) * 5));
 
 	glUniform1f(itime_location, glfwGetTime());
 
@@ -248,7 +136,7 @@ int main(void)
 
 		glUniform1f(itime_location, time);
 
-		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, (void*)0);
+		glDrawElements(GL_TRIANGLES, scene.indices.size(), GL_UNSIGNED_INT, (void*)0);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
