@@ -4,15 +4,15 @@
 #include <iostream>
 
 void createBg(VertexArray &vertices, IndiceArray &indices) {
-	static std::vector<Vertex> bgVertices = {
-		{ -27.f, -15.f, -25.f,		 0.f,  0.f,		0.f, 0.f, 0.f },
-		{ -27.f,  15.f, -25.f,		 0.f,  1.f,		0.f, 0.f, 0.f },
-		{  27.f,  15.f, -25.f,		 1.8f, 1.f,		0.f, 0.f, 0.f },
-		{  27.f, -15.f, -25.f,		 1.8f, 0.f,		0.f, 0.f, 0.f }
+	static VertexArray bgVertices = {
+		{ -27.f, -15.f, -25.f,		 0.f,  0.f,		0.f, 0.f, 0.f,		0.f, 0.f, 0.f  },
+		{ -27.f,  15.f, -25.f,		 0.f,  1.f,		0.f, 0.f, 0.f,		0.f, 0.f, 0.f  },
+		{  27.f,  15.f, -25.f,		 1.8f, 1.f,		0.f, 0.f, 0.f,		0.f, 0.f, 0.f  },
+		{  27.f, -15.f, -25.f,		 1.8f, 0.f,		0.f, 0.f, 0.f,		0.f, 0.f, 0.f  }
 	};
 	vertices.insert(vertices.end(), bgVertices.begin(), bgVertices.end());
 
-	static std::vector<unsigned int>  bgIndices = { 0,1,2,2,3,0 };
+	static IndiceArray bgIndices = { 0,1,2,2,3,0 };
 	indices.insert(indices.end(), bgIndices.begin(), bgIndices.end());
 }
 
@@ -21,14 +21,14 @@ void createChip(Vec3 pos, VertexArray &vertices, IndiceArray &indices)
 	const float w = 0.5f; //width
 	const float t = 0.1f / 2.0f; //thickness
 
-	int a = vertices.size(); //start offset for indices
+	int a = static_cast<int>(vertices.size()); //start offset for indices
 
-	vertices.push_back({ 0.f, 0.f, -t,		0.f, 0.f,	 pos.x, pos.y, pos.z });
-	vertices.push_back({ 0.f, 0.f,  t,		0.f, 0.f,	 pos.x, pos.y, pos.z });
+	vertices.push_back({ 0.f, 0.f, -t,		0.f, 0.f,	 pos.x, pos.y, pos.z,	0.f, 0.f, 0.f });
+	vertices.push_back({ 0.f, 0.f,  t,		0.f, 0.f,	 pos.x, pos.y, pos.z,	0.f, 0.f, 0.f });
 
 	int corners = 30;
 	for (int i = 0; i < corners; i++) {
-		float angle = i * (2 * 3.14159) / corners;
+		float angle = i * (2 * 3.14159f) / corners;
 		vertices.push_back({
 			static_cast<float>(cos(angle)) * w,
 			static_cast<float>(sin(angle)) * w,
@@ -107,5 +107,5 @@ Scene scene2() {
 		createChip({ -10.f + rx * 20.f, -8.f + ry * 16.f, -rz * 30.f - 2.f }, vertices, indices);
 	}
 
-	return {vertices, indices, vertexShader.source, fragmentShader.source};
+	return {vertices, indices, vertexShader.source, fragmentShader.source, 0 };
 }

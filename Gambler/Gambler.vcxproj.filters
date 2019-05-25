@@ -30,6 +30,24 @@
     <ClCompile Include="scene1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="scene3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="objReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="textureLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scene5.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scene5.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="synth.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="scene1.vert">
@@ -44,6 +62,18 @@
     <None Include="scene2.vert">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="scene3.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="scene3.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="scene5.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="scene5.frag">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shaderReader.h">
@@ -53,6 +83,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="structs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scene3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="objReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="textureLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="synth.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

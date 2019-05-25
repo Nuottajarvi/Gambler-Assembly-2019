@@ -7,9 +7,12 @@
 #include <math.h>
 #include <iostream>
 #include <string>
-#include "shaderReader.h"
 #include "structs.h"
+#include "shaderReader.h"
 #include "scene2.h"
+#include "scene3.h"
+#include "scene5.h"
+#include "synth.h"
 
 static void error_callback(int error, const char* description)
 {
@@ -24,9 +27,11 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 
 int main(void)
 {
+	//Synth::play();
+
 	GLFWwindow* window;
 	GLuint vertex_buffer, element_buffer, vertex_shader, fragment_shader, program;
-	GLint mvp_location, vpos_location, vworldpos_location, vtex_location, itime_location;
+	GLint mvp_location, vpos_location, vworldpos_location, vtex_location, vnor_location, itime_location;
 	glfwSetErrorCallback(error_callback);
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
@@ -49,12 +54,14 @@ int main(void)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	Scene scene = scene2();
-	std::cout << scene.fragmentShader << std::endl;
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+
+	Scene scene = scene5();
 
 	const char* vertex_shader_text = scene.vertexShader.c_str();
 	const char* fragment_shader_text = scene.fragmentShader.c_str();
-	
+		
 	//vertices
 	glGenBuffers(1, &vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
@@ -80,8 +87,13 @@ int main(void)
 	vpos_location = glGetAttribLocation(program, "vPos");
 	vtex_location = glGetAttribLocation(program, "vTex");
 	vworldpos_location = glGetAttribLocation(program, "vWorldPos");
+	vnor_location = glGetAttribLocation(program, "vNor");
 
 	itime_location = glGetUniformLocation(program, "iTime");
+
+	TextureArray textures;
+	if(scene.getTextures != 0) 
+		textures = scene.getTextures(program);
 
 	glEnableVertexAttribArray(vpos_location);
 	glVertexAttribPointer(vpos_location, 3, GL_FLOAT, GL_FALSE,
@@ -92,8 +104,17 @@ int main(void)
 	glEnableVertexAttribArray(vworldpos_location);
 	glVertexAttribPointer(vworldpos_location, 3, GL_FLOAT, GL_FALSE,
 		sizeof(scene.vertices[0]), (void*)(sizeof(float) * 5));
+	glEnableVertexAttribArray(vnor_location);
+	glVertexAttribPointer(vnor_location, 3, GL_FLOAT, GL_FALSE,
+		sizeof(scene.vertices[0]), (void*)(sizeof(float) * 8));
 
-	glUniform1f(itime_location, glfwGetTime());
+	//TEXTURE STUFF
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	float borderColor[] = { 1.0f, 1.0f, 0.0f, 1.0f }; //for GL_CLAMP_TO_BORDER
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	
+	std::vector<GLint> tex_obj;
 
 	GLint isLinked = 0;
 
@@ -119,7 +140,7 @@ int main(void)
 	while (!glfwWindowShouldClose(window))
 	{
 		float time = (float)glfwGetTime();
-		//std::cout << 1.f / (time - lastTime) << std::endl;
+		std::cout << 1.f / (time - lastTime) << std::endl;
 		lastTime = time;
 		float ratio;
 		int width, height;
@@ -135,6 +156,9 @@ int main(void)
 		glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)mvp);
 
 		glUniform1f(itime_location, time);
+		for (int i = 0; i < textures.size(); i++) {
+			glUniform1i(textures[i], i);
+		}
 
 		glDrawElements(GL_TRIANGLES, scene.indices.size(), GL_UNSIGNED_INT, (void*)0);
 		glfwSwapBuffers(window);
