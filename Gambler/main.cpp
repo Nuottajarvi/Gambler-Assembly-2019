@@ -157,10 +157,12 @@ int main(void)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screen_width, screen_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
 	
-	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-	glDrawBuffers(1, DrawBuffers);
+	//GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+	//glDrawBuffers(1, DrawBuffers);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
@@ -203,22 +205,37 @@ int main(void)
 		std::cout << "glValidateProgram" << std::endl;
 	}
 
-	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-		// positions
-		-1.0f,  1.0f,
-		-1.0f, -1.0f,
-		 1.0f, -1.0f,
+	GLfloat quadVertices[] = {
+		// positions   // texCoords
+		-1.0f,  1.0f,//  0.0f, 1.0f,
+		-1.0f, -1.0f,//  0.0f, 0.0f,
+		 1.0f, -1.0f,//  1.0f, 0.0f,
 
-		-1.0f,  1.0f,
-		 1.0f, -1.0f,
-		 1.0f,  1.0f,
+		-1.0f,  1.0f,//  0.0f, 1.0f,
+		 1.0f, -1.0f,//  1.0f, 0.0f,
+		 1.0f,  1.0f,//  1.0f, 1.0f
 	};
-	GLuint vbo_fbo_vertices;
-	unsigned int quadVAO;
+
+	GLuint uniform_fbo_texture, v_coord;
+	uniform_fbo_texture = glGetUniformLocation(post_program, "fbo_tex");
+	v_coord = glGetAttribLocation(post_program, "v_coord");
+	if (v_coord == -1) {
+		std::cout << "Could not bind attribute vcoord" << std::endl;
+		return 0;
+	}
+
+	if (uniform_fbo_texture == -1) {
+		std::cout << "Could not bind attribute uniform_fbo_texture" << std::endl;
+		return 0;
+	}
+
+	GLuint quadVAO, quadVBO;
 	glGenVertexArrays(1, &quadVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadVAO);
+	glGenBuffers(1, &quadVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glEnableVertexAttribArray(v_coord);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 
 	GLint postIsLinked = 0;
 
@@ -240,19 +257,6 @@ int main(void)
 			std::cout << *i << ' ';
 	}
 
-	GLuint uniform_fbo_texture, v_coord;
-	uniform_fbo_texture = glGetUniformLocation(post_program, "fbo_tex");
-	v_coord = glGetAttribLocation(post_program, "v_coord");
-	if (v_coord == -1) {
-		std::cout << "Could not bind attribute vcoord" << std::endl;
-		return 0;
-	}
-
-	if (uniform_fbo_texture == -1) {
-		std::cout << "Could not bind attribute uniform_fbo_texture" << std::endl;
-		return 0;
-	}
-	
 	float lastTime = (float)glfwGetTime();
 	std::cout << glfwWindowShouldClose(window) << std::endl;
 	while (!glfwWindowShouldClose(window))
@@ -267,7 +271,6 @@ int main(void)
 		ratio = width / (float)height;
 
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-		
 		glViewport(0, 0, width, height);
 
 		glClearColor(0.0, 0.0, 0.3, 1.0);
@@ -276,8 +279,7 @@ int main(void)
 		mat4x4_perspective(p, -1.f, 1.8f, 0.01f, 50.f);
 		mat4x4_mul(mvp, p, m);
 		glUseProgram(program);
-		//glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-		
+		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
 		glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)mvp);
 
 		glUniform1f(itime_location, time);
@@ -286,19 +288,14 @@ int main(void)
 		}
 
 		glDrawElements(GL_TRIANGLES, scene.indices.size(), GL_UNSIGNED_INT, (void*)0);
-	
+		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, width, height);
+		glUseProgram(post_program);
 
 		glClearColor(0.0, 0.3, 0.0, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glUseProgram(post_program);
-		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-		glUniform1i(uniform_fbo_texture, GL_TEXTURE0);
-
 		glBindBuffer(GL_ARRAY_BUFFER, quadVAO);
-		glEnableVertexAttribArray(v_coord);
 		glVertexAttribPointer(
 			v_coord,			// attribute
 			2,                  // number of elements per vertex, here (x,y)
@@ -308,10 +305,9 @@ int main(void)
 			0                   // offset of first element
 		);
 
-		
-		glDrawElements(GL_TRIANGLES, scene.indices.size(), GL_UNSIGNED_INT, (void*)0);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
-		glDisableVertexAttribArray(v_coord);
+		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+		glUniform1i(uniform_fbo_texture, GL_TEXTURE0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
