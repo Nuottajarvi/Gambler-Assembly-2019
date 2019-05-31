@@ -11,8 +11,12 @@
 #include "shaderReader.h"
 #include "scene2.h"
 #include "scene3.h"
+#include "scene4.h"
 #include "scene5.h"
 #include "synth.h"
+
+const float screen_width = 640;
+const float screen_height = 360;
 
 static void error_callback(int error, const char* description)
 {
@@ -30,14 +34,15 @@ int main(void)
 	//Synth::play();
 
 	GLFWwindow* window;
-	GLuint vertex_buffer, element_buffer, vertex_shader, fragment_shader, program;
+	GLuint vertex_buffer, element_buffer, vertex_shader, fragment_shader,
+		post_fragment_shader, post_vertex_shader, program, post_program;
 	GLint mvp_location, vpos_location, vworldpos_location, vtex_location, vnor_location, itime_location;
 	glfwSetErrorCallback(error_callback);
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-	window = glfwCreateWindow(640, 360, "Gambler", NULL, NULL);
+	window = glfwCreateWindow(screen_width, screen_height, "Gambler", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
@@ -54,10 +59,14 @@ int main(void)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
+	//transparency
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	Scene scene = scene5();
+	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	//glEnableVertexAttribArray(2);
+
+	Scene scene = scene4();
 
 	const char* vertex_shader_text = scene.vertexShader.c_str();
 	const char* fragment_shader_text = scene.fragmentShader.c_str();
@@ -136,23 +145,139 @@ int main(void)
 			std::cout << *i << ' ';
 	}
 
+
+	//POST PROCESSING
+	GLuint framebuffer;
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	GLuint textureColorbuffer;
+	glGenTextures(1, &textureColorbuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screen_width, screen_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+	
+	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(1, DrawBuffers);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	shaderReader post_vert = shaderReader("scene4-post.vert");
+	const char* post_vert_text = post_vert.source.c_str();
+	shaderReader post_frag = shaderReader("scene4-post.frag");
+	const char* post_frag_text = post_frag.source.c_str();
+	glCreateShader(GL_FRAGMENT_SHADER);
+
+	post_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(post_fragment_shader, 1, &post_frag_text, NULL);
+	glCompileShader(post_fragment_shader);
+
+	post_vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(post_vertex_shader, 1, &post_vert_text, NULL);
+	glCompileShader(post_vertex_shader);
+
+	if (post_fragment_shader == 0 || post_vertex_shader == 0) {
+		std::cout << "Post fragment or vertex shader failed" << std::endl;
+		return 0;
+	}
+
+	post_program = glCreateProgram();
+	glAttachShader(post_program, post_vertex_shader);
+	glAttachShader(post_program, post_fragment_shader);
+	glLinkProgram(post_program);
+
+	GLint link_ok, validate_ok;
+	glGetProgramiv(post_program, GL_LINK_STATUS, &link_ok);
+	if (!link_ok) {
+		std::cout << "glLinkProgram" << std::endl;
+		return 0;
+	}
+
+	glValidateProgram(post_program);
+	glGetProgramiv(post_program, GL_VALIDATE_STATUS, &validate_ok);
+	if (!validate_ok) {
+		std::cout << "glValidateProgram" << std::endl;
+	}
+
+	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+		// positions
+		-1.0f,  1.0f,
+		-1.0f, -1.0f,
+		 1.0f, -1.0f,
+
+		-1.0f,  1.0f,
+		 1.0f, -1.0f,
+		 1.0f,  1.0f,
+	};
+	GLuint vbo_fbo_vertices;
+	unsigned int quadVAO;
+	glGenVertexArrays(1, &quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVAO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	GLint postIsLinked = 0;
+
+	//ERROR CHECKING FOR POST
+	glGetProgramiv(post_program, GL_LINK_STATUS, &postIsLinked);
+	if (postIsLinked == GL_FALSE)
+	{
+		GLint maxLength = 0;
+		glGetProgramiv(post_program, GL_INFO_LOG_LENGTH, &maxLength);
+
+		// The maxLength includes the NULL character
+		std::vector<GLchar> infoLog(maxLength);
+		glGetProgramInfoLog(post_program, maxLength, &maxLength, &infoLog[0]);
+
+		// The program is useless now. So delete it.
+		glDeleteProgram(post_program);
+
+		for (auto i = infoLog.begin(); i != infoLog.end(); ++i)
+			std::cout << *i << ' ';
+	}
+
+	GLuint uniform_fbo_texture, v_coord;
+	uniform_fbo_texture = glGetUniformLocation(post_program, "fbo_tex");
+	v_coord = glGetAttribLocation(post_program, "v_coord");
+	if (v_coord == -1) {
+		std::cout << "Could not bind attribute vcoord" << std::endl;
+		return 0;
+	}
+
+	if (uniform_fbo_texture == -1) {
+		std::cout << "Could not bind attribute uniform_fbo_texture" << std::endl;
+		return 0;
+	}
+	
 	float lastTime = (float)glfwGetTime();
+	std::cout << glfwWindowShouldClose(window) << std::endl;
 	while (!glfwWindowShouldClose(window))
 	{
 		float time = (float)glfwGetTime();
-		std::cout << 1.f / (time - lastTime) << std::endl;
+		//std::cout << 1.f / (time - lastTime) << std::endl;
 		lastTime = time;
 		float ratio;
 		int width, height;
 		mat4x4 m, p, mvp;
 		glfwGetFramebufferSize(window, &width, &height);
 		ratio = width / (float)height;
+
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		
 		glViewport(0, 0, width, height);
+
+		glClearColor(0.0, 0.0, 0.3, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		mat4x4_identity(m);
 		mat4x4_perspective(p, -1.f, 1.8f, 0.01f, 50.f);
 		mat4x4_mul(mvp, p, m);
 		glUseProgram(program);
+		//glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+		
 		glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)mvp);
 
 		glUniform1f(itime_location, time);
@@ -161,6 +286,33 @@ int main(void)
 		}
 
 		glDrawElements(GL_TRIANGLES, scene.indices.size(), GL_UNSIGNED_INT, (void*)0);
+	
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, width, height);
+
+		glClearColor(0.0, 0.3, 0.0, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glUseProgram(post_program);
+		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+		glUniform1i(uniform_fbo_texture, GL_TEXTURE0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, quadVAO);
+		glEnableVertexAttribArray(v_coord);
+		glVertexAttribPointer(
+			v_coord,			// attribute
+			2,                  // number of elements per vertex, here (x,y)
+			GL_FLOAT,           // the type of each element
+			GL_FALSE,           // take our values as-is
+			0,                  // no extra data between each position
+			0                   // offset of first element
+		);
+
+		
+		glDrawElements(GL_TRIANGLES, scene.indices.size(), GL_UNSIGNED_INT, (void*)0);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
+		glDisableVertexAttribArray(v_coord);
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}

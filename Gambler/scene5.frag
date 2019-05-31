@@ -114,7 +114,7 @@ vec3 rayMarches(vec3 eye, vec3 rayDir) {
 out vec4 fragColor;
 void main() {    
     vec3 eye = vec3(-iTime * .00, 1., -8.0 + iTime * .35);
-    vec3 rayDir = rotationMatrixX(-PI / 24.) * vec3(-.05+uv.x*.1, -.05+uv.y*.1, 1.0);
+    vec3 rayDir = rotationMatrixY(iTime * .1) * rotationMatrixX(-PI / 24.) * vec3(-.05+uv.x*.1, -.05+uv.y*.1, 1.0);
     
     vec3 col = rayMarches(eye, rayDir);
 	//vec3 col = vec3(terrain(uv * 20.));

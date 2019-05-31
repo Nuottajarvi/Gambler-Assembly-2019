@@ -32,4 +32,6 @@ const struct Scene
 	std::string vertexShader;
 	std::string fragmentShader;
 	TextureArray (*getTextures)(GLuint);
+	std::string postVertexShader;
+	std::string postFragmentShader;
 };

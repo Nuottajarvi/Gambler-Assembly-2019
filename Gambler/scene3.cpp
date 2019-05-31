@@ -50,7 +50,7 @@ Scene scene3() {
 				copy.z += -8.f + n * 2.8f;
 
 				vertices.push_back(copy);
-				indices.push_back(itIndices.at(j) + itIndices.size() * (i + n * 4));
+				indices.push_back(itIndices.at(j) + static_cast<int>(itIndices.size()) * (i + n * 4));
 			}
 		}
 	}

@@ -21,6 +21,42 @@ struct chipM {
     vec2 r;
 };
 
+vec2 hash( vec2 x ) {
+    const vec2 k = vec2( 0.3183099, 0.3678794 );
+    x = x*k + k.yx;
+    return -1.0 + 2.0*fract( 16.0 * k*fract( x.x*x.y*(x.x+x.y)) );
+}
+
+float noise( vec2 p ) {
+    vec2 i = floor( p );
+    vec2 f = fract( p );
+	
+	vec2 u = f*f*(3.0-2.0*f);
+
+    return mix( mix( dot( hash( i + vec2(0.0,0.0) ), f - vec2(0.0,0.0) ), 
+                     dot( hash( i + vec2(1.0,0.0) ), f - vec2(1.0,0.0) ), u.x),
+                mix( dot( hash( i + vec2(0.0,1.0) ), f - vec2(0.0,1.0) ), 
+                     dot( hash( i + vec2(1.0,1.0) ), f - vec2(1.0,1.0) ), u.x), u.y);
+}
+
+float fbm(vec2 p) {
+	
+	float a = 0.;
+	vec2 os = vec2(0.);
+	float mul = 1.3;
+
+	for(float i = 0.; i < 5.; i+=1.) {
+		float ang = 0.5 * i;
+		mat2 rot = mat2(cos(ang), sin(ang),
+                    -sin(ang), cos(ang));
+		a += noise(rot * ((p + os) * mul));
+		mul*=2.;
+		os += vec2(4., 10.);
+	}
+
+	return a;
+}
+
 vec3 chip(vec3 chipCol, vec2 uv) {
 
 	chipM chipM = chipM(vec4(0.25, 0.19, 0.17, 0.16) * 4., vec2(1.), vec2(.5));
@@ -56,10 +92,17 @@ vec3 chip(vec3 chipCol, vec2 uv) {
 }
 
 void main() {
-	float bgT = iTime * 0.1;
-	float shade = min(bgT*bgT, 0.8);
-	vec3 bgCol = vec3(shade, min(shade * 1.5, 0.8), shade);
+
 	if(isBg > 0.5) {
+		float osx = fbm(uv + iTime * .025) + iTime * .025;
+		float osy = fbm(uv + iTime * .01) + iTime * .025;
+	
+		float bgFloat = fbm(uv * .25 + vec2(osx, osy));
+		bgFloat += 1.;
+		bgFloat *= .5;
+
+		vec3 bgCol = mix(vec3(0.1, 0.3, 0.1), vec3(0.3, 0.5, 0.05), bgFloat);
+		bgCol = mix(bgCol, vec3(.7, .7, 0.), osx);
 		gl_FragColor = vec4(bgCol, 1.);
 	} else {
 		vec3 col = chip(red, uv);
@@ -74,7 +117,6 @@ void main() {
 		float diff = max(dot(normal, lightDir), 0.0);
 		float light = diff * .5 + .5;
 		vec3 lightCol = col * light;
-		vec3 mixedCol = mix(lightCol, bgCol, min(1., z * z * .0033));
-		gl_FragColor = vec4(mixedCol, 1.);
+		gl_FragColor = vec4(lightCol, 1. - z * z * .0033);
 	}
 }
