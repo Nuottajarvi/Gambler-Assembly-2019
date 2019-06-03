@@ -35,8 +35,9 @@ mat3 rotationMatrixZ(float rad) {
 void main()
 {
 
-	float zRot = mix(PI / 1.5, 0., min(1., iTime * 0.2));
-	float xRot = mix(PI / 2., 0., min(1., iTime * 0.2));
+	float slerp = smoothstep(0., 1., iTime * 0.2);
+	float zRot = mix(PI / 1.5, 0., slerp);
+	float xRot = mix(PI / 2., 0., slerp);
 
     gl_Position = MVP * vec4(rotationMatrixZ(zRot) * rotationMatrixX(xRot) * vPos + vec3(0., 0., -8.), 1.0);
     uv = vTex;
