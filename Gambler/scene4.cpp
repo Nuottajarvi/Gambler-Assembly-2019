@@ -5,6 +5,7 @@
 #include "structs.h"
 #include "objReader.h"
 #include "textureLoader.h"
+#include "scene2.h"
 
 unsigned int fbo;
 
@@ -14,9 +15,13 @@ Scene scene4() {
 	shaderReader vertexShader = shaderReader("scene4.vert");
 	shaderReader fragmentShader = shaderReader("scene4.frag");
 
-	objReader("revolver.obj", vertices, indices);
+	shaderReader post_vert = shaderReader("post.vert");
+	shaderReader post_frag = shaderReader("scene4-post.frag");
+	
+	createBg(vertices, indices);
+	objReader("revolver.obj", vertices, indices, { 1, 0, 0 });
 
-	return { vertices, indices, vertexShader.source, fragmentShader.source, 0 };
+	return { 8. , vertices, indices, vertexShader.source, fragmentShader.source, 0, post_vert.source, post_frag.source, 6 };
 }
 
 void onEnd() {

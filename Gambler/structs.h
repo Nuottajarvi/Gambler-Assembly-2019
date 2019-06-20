@@ -27,6 +27,7 @@ const struct Vertex
 
 const struct Scene
 {
+	float length;
 	VertexArray vertices;
 	IndiceArray indices;
 	std::string vertexShader;
@@ -34,4 +35,5 @@ const struct Scene
 	TextureArray (*getTextures)(GLuint);
 	std::string postVertexShader;
 	std::string postFragmentShader;
+	int postRuns;
 };

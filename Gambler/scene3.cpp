@@ -55,5 +55,5 @@ Scene scene3() {
 		}
 	}
 
-	return { vertices, indices, vertexShader.source, fragmentShader.source, getTextures };
+	return {1, vertices, indices, vertexShader.source, fragmentShader.source, getTextures };
 }

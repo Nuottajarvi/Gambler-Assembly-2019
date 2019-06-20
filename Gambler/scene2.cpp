@@ -107,5 +107,5 @@ Scene scene2() {
 		createChip({ -10.f + rx * 20.f, -8.f + ry * 16.f, -rz * 30.f - 2.f }, vertices, indices);
 	}
 
-	return {vertices, indices, vertexShader.source, fragmentShader.source, 0 };
+	return {1, vertices, indices, vertexShader.source, fragmentShader.source, 0 };
 }

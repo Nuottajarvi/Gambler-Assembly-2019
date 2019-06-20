@@ -6,6 +6,10 @@
 #include "objReader.h"
 
 void objReader(std::string name, VertexArray &vertices, IndiceArray &indices) {
+	objReader(name, vertices, indices, { 0, 0, 0 });
+}
+
+void objReader(std::string name, VertexArray &vertices, IndiceArray &indices, Vec3 worldPos) {
 	
 	FILE * file = fopen(name.c_str(), "r");
 	if (file == NULL) {
@@ -57,7 +61,7 @@ void objReader(std::string name, VertexArray &vertices, IndiceArray &indices) {
 				vertices.push_back({
 					v.x, v.y, v.z,
 					uv.x, 1.f -  uv.y,
-					0.f, 0.f, 0.f,
+					worldPos.x, worldPos.y, worldPos.z,
 					n.x, n.y, n.z
 				});
 			}
