@@ -1,10 +1,6 @@
 #version 110
 uniform float iTime;
 varying vec2 uv;
-//void main()
-//{
-//    gl_FragColor = vec4(uv.x / ar, mod(iTime, 1.), 0., 1.0);
-//}
 
 const float ar = 1.8;
 const float EPSILON = 0.000001;
@@ -218,12 +214,18 @@ void main() {
         }
     }
     
+	if(h0.x > hg.x) {
+		col = chip(col, green, uv, pg0, chipM(h*hg, w*wg, r+rg));
+		col = chip(col, green, uv, pg1, chipM(h*hg, w*wg, r+rg));
+	}
     col = chip(col, red, uv, p0, chipM(h*h0, w*w0, r+r0));
     col = chip(col, red, uv, p1, chipM(h*h1, w*w1, r+r1));
     col = chip(col, red, uv, p2, chipM(h*h2, w*w2, r+r2));
     
-    col = chip(col, green, uv, pg0, chipM(h*hg, w*wg, r+rg));
-    col = chip(col, green, uv, pg1, chipM(h*hg, w*wg, r+rg));
+	if(h0.x <= hg.x) {
+		col = chip(col, green, uv, pg0, chipM(h*hg, w*wg, r+rg));
+		col = chip(col, green, uv, pg1, chipM(h*hg, w*wg, r+rg));
+	}
 
     // Output to screen
     gl_FragColor = vec4(col,1.0);

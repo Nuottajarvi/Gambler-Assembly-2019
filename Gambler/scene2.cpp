@@ -107,8 +107,8 @@ Scene scene2() {
 		float ry = ((float)rand() / (RAND_MAX));
 		float rz = ((float)rand() / (RAND_MAX));
 
-		createChip({ -10.f + rx * 20.f, -8.f + ry * 16.f, -rz * 30.f - 2.f }, vertices, indices);
+		createChip({ -10.f + rx * 20.f, -8.f + ry * 16.f, -rz * 30.f - 17.f }, vertices, indices);
 	}
 
-	return {10., vertices, indices, vertexShader.source, fragmentShader.source, 0 ,post_vert.source, post_frag.source, 2 };
+	return {13., vertices, indices, vertexShader.source, fragmentShader.source, 0 ,post_vert.source, post_frag.source, 2 };
 }

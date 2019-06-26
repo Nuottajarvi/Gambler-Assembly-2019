@@ -46,7 +46,7 @@ void main()
 		float y = 0.;
 		float x = 0.;
 
-		float time = 1. + iTime;
+		float time = 3. + iTime;
 
 		if(time < 18.) {
 			z += 9. - time * .5;

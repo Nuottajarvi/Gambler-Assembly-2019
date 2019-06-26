@@ -48,8 +48,8 @@ void main(void) {
 
 	col *= 1.1;
 
-	if(iTime > 22.) {
-		col = mix(col, aa(), (iTime - 22.)*.33);
+	if(iTime > 19.) {
+		col = mix(col, aa(), min(1., (iTime - 19.)*.33));
 	}
 
 	gl_FragColor = vec4(col, 1.);

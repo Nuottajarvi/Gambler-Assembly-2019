@@ -105,11 +105,11 @@ void main() {
 		bgCol = mix(bgCol, vec3(.7, .7, 0.), osx);
 
 		//timebased
-		if(iTime < 1.) {
-			bgCol = mix(vec3(0.15), bgCol, iTime); 
+		if(iTime < 7.) {
+			bgCol = mix(vec3(0.15), bgCol, max(0., (iTime - 4.) * .33)); 
 		}
 		if(iTime > 9.) {
-			bgCol = mix(bgCol, vec3(0.8), iTime - 9.); 
+			bgCol = mix(bgCol, vec3(0.8), min(1., (iTime - 9.) * .5)); 
 		}
 
 		gl_FragColor = vec4(bgCol, 1.);

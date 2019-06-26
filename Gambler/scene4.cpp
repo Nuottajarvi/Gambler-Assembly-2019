@@ -21,7 +21,7 @@ Scene scene4() {
 	createBg(vertices, indices);
 	objReader("revolver.obj", vertices, indices, { 1, 0, 0 });
 
-	return { 26. , vertices, indices, vertexShader.source, fragmentShader.source, 0, post_vert.source, post_frag.source, 6 };
+	return { 23. , vertices, indices, vertexShader.source, fragmentShader.source, 0, post_vert.source, post_frag.source, 6 };
 }
 
 void onEnd() {

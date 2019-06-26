@@ -6,54 +6,21 @@
 #include "textureLoader.h"
 #include <GLFW/glfw3.h>
 
-void flipIndices(unsigned int &j) {
-	if (j % 3 == 1) {
-		j = j + 1;
-	}
-	else if (j % 3 == 2) {
-		j = j - 1;
-	}
-}
-
-TextureArray getTextures(GLuint program) {
-	TextureArray textures;
-	textures.push_back(loadTexture("sofa.png", "sofaTex", program));
-	textures.push_back(loadTexture("insidetrain.png", "roomTex", program));
-
-	return textures;
-}
-
 Scene scene3() {
-	VertexArray vertices;
-	IndiceArray indices;
-
-	VertexArray itVertices;
-	IndiceArray itIndices;
 	shaderReader vertexShader = shaderReader("scene3.vert");
 	shaderReader fragmentShader = shaderReader("scene3.frag");
 
-	objReader("insidetrain.obj", itVertices, itIndices);
+	shaderReader post_vert = shaderReader("post.vert");
+	shaderReader post_frag = shaderReader("antialias-post.frag");
 
-	for (int n = 0; n < 8; n++) {
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < itVertices.size(); j++) {
-				Vertex copy = itVertices.at(j);
+	VertexArray vertices{
+		{ -1.f, -1.f, 0.f,		 0.f,  1.f,		0.f, 0.f, 0.f,		0.f, 0.f, 0.f  },
+		{ -1.f,  1.f, 0.f,		 0.f,  0.f,		0.f, 0.f, 0.f,		0.f, 0.f, 0.f  },
+		{  1.f,  1.f, 0.f,		 1.8f, 0.f,		0.f, 0.f, 0.f,		0.f, 0.f, 0.f  },
+		{  1.f, -1.f, 0.f,		 1.8f, 1.f,		0.f, 0.f, 0.f,		0.f, 0.f, 0.f  }
+	};
 
-				if (i % 2 == 1) {
-					copy.x = -copy.x;
-					flipIndices(itIndices.at(j));
-				}
-				if (i >= 2) {
-					copy.z = -copy.z;
-				}
+	IndiceArray indices{ 0, 1, 2, 2, 3, 0 };
 
-				copy.z += -8.f + n * 2.8f;
-
-				vertices.push_back(copy);
-				indices.push_back(itIndices.at(j) + static_cast<int>(itIndices.size()) * (i + n * 4));
-			}
-		}
-	}
-
-	return {1, vertices, indices, vertexShader.source, fragmentShader.source, getTextures };
+	return { 16., vertices, indices, vertexShader.source, fragmentShader.source, 0, post_vert.source, post_frag.source, 2 };
 }

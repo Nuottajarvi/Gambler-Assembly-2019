@@ -41,7 +41,7 @@ float random(vec3 co){
 
 void main()
 {
-	float t = iTime + 5.;
+	float t = iTime;
 	//is background
 	if(vWorldPos == vec3(0., 0., 0.)) {
 		gl_Position = MVP * vec4(vPos, 1.0);
@@ -51,7 +51,7 @@ void main()
 			rotationMatrixX(t * (random(vWorldPos.yxz) + 0.2)) *
 			rotationMatrixZ(t * random(vWorldPos.zyx));
 		vec3 locObj = iRot * vPos;
-		vec3 zDrive = vec3(0., 0., iTime * iTime * .33);
+		vec3 zDrive = vec3(0., 0., t * t * .33);
 		gl_Position = MVP * vec4(locObj + vWorldPos + zDrive, 1.0);
 		z = vWorldPos.z + zDrive.z;
 		face = vPos.z;
