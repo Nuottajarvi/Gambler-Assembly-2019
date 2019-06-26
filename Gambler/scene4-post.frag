@@ -29,5 +29,10 @@ void main(void) {
 
 	col *= 1.1;
 
+	if(iTime > 5.) {
+		vec3 original = texture2D(fbo_tex, uv).rgb;
+		col = mix(col, original, (iTime - 5.)*.33);
+	}
+
 	gl_FragColor = vec4(col, 1.);
 }

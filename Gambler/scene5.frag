@@ -7,10 +7,10 @@ const float end = 100.0;
 const float start = 0.01;
 const float PI = 3.141592;
 
-const vec3 light = vec3(1., 2., 0.);
+const vec3 light = vec3(2., 8., 0.);
 
 const float rotSpeed = 0.1;
-const float flySpeed = 0.2;
+const float flySpeed = 0.5;
 
 vec2 hash( vec2 x ) {
     const vec2 k = vec2( 0.318, 0.367);
@@ -24,10 +24,10 @@ float noise2( vec2 p ) {
 	
 	vec2 u = f*f*(3.0-2.0*f);
 
-    return hash(i).x;// mix( mix( dot( hash( i + vec2(0.0,0.0) ), f - vec2(0.0,0.0) ), 
-                   //  dot( hash( i + vec2(1.0,0.0) ), f - vec2(1.0,0.0) ), u.x),
-                //mix( dot( hash( i + vec2(0.0,1.0) ), f - vec2(0.0,1.0) ), 
-                  //   dot( hash( i + vec2(1.0,1.0) ), f - vec2(1.0,1.0) ), u.x), u.y);
+    return  mix( mix( dot( hash( i + vec2(0.0,0.0) ), f - vec2(0.0,0.0) ), 
+                     dot( hash( i + vec2(1.0,0.0) ), f - vec2(1.0,0.0) ), u.x),
+                mix( dot( hash( i + vec2(0.0,1.0) ), f - vec2(0.0,1.0) ), 
+                     dot( hash( i + vec2(1.0,1.0) ), f - vec2(1.0,1.0) ), u.x), u.y);
 }
 
 float noise(vec2 p)
@@ -111,7 +111,7 @@ float terrain(vec2 p) {
 		1.5 * smoothNoise(p * .25)
 		+ 0.12 * smoothNoise(p * 2.)
 		+ 0.1
-	) * .3;
+	) * .3 - .25;
 }
 
 float e = 0.001;
@@ -155,9 +155,13 @@ vec3 rayMarches() {
 	//bullet
 	float bStart = .1;
 	float bEnd = 10.;
+
+	float cameraHeight = mix(-0.12, 1., min(1, iTime * .25));
 	
-	vec3 bEye = rotationMatrixY(max(0., (iTime - 1.) * rotSpeed)) * vec3(-0.3, 1, -8.);
-	vec3 bRayDir = rotationMatrixY(max(0., (iTime - 1.) * rotSpeed)) * rotationMatrixX(-PI / 24.) * vec3(-.05+uv.x*.1, -.05+uv.y*.1, 1.0);
+	vec3 bEye = rotationMatrixY(max(0., (iTime - 1.) * rotSpeed)) * vec3(-0.3, cameraHeight, -8.);
+	vec3 bRayDir = rotationMatrixY(max(0., (iTime - 1.) * rotSpeed)) *
+	rotationMatrixX(mix(0., -PI / 24., min(1, iTime * .25))) *
+	vec3(-.05+uv.x*.1, -.05+uv.y*.1, 1.0);
 	float dist = rayMarch(bEye, bRayDir, bStart, bEnd);
 
 	if (dist < bEnd ) {
@@ -169,19 +173,20 @@ vec3 rayMarches() {
 		vec3 specularDir = reflect(normalize(-light), n);
 		float specular = pow(max(dot(viewDir, specularDir), 0.0), 32.);
 
-		vec3 hue = vec3(.5, .32, .05) - abs(noise(((bEye + bRayDir * dist) * 20.).xy)) * .15;
+		vec3 hue = vec3(.5, .32, .05) - abs(noise2(((bEye + bRayDir * dist) * 20.).xy)) * .15;
 
 		return hue * diffuse + specular;
 	} else {
 		//terrain
-		
-		vec3 eye = rotationMatrixY(max(0., (iTime - 1.) * rotSpeed)) * vec3(-0.3, 1., -8.0) + vec3(iTime * flySpeed, 0., 0.);
-		vec3 rayDir = rotationMatrixY(max(0., (iTime - 1.) * rotSpeed)) * rotationMatrixX(-PI / 24.) * vec3(-.05+uv.x*.1, -.05+uv.y*.1, 1.0);
+		vec3 eye = rotationMatrixY(max(0., (iTime - 1.) * rotSpeed)) * vec3(0., 1., .0) + vec3(iTime * flySpeed, 0., 0.);
+		vec3 rayDir = rotationMatrixY(max(0., (iTime - 1.) * rotSpeed)) *
+		rotationMatrixX(mix(0., -PI / 24., min(1, iTime * .25))) *
+		vec3(-.05+uv.x*.1, -.05+uv.y*.1, 1.0);
 		float depth = start;
 
 		const float mint = 0.1f;
 		const float dt = 0.01f;
-		const float maxt = 30.f;
+		const float maxt = 16.f;
 
 		float d;
 		d = rayTrace(eye, rayDir, mint, dt, maxt);
@@ -197,10 +202,10 @@ vec3 rayMarches() {
 		float light = max(0., dot(n, light)) * .3 + 0.05;
 	
 		//return vec3(ip.y + .5, ip.x, ip.z);
-
 		//return n;
 
-		vec3 texture = vec3(abs(noise(ip.xz * 50.)) * .3 + 0.5);
+		//vec3 texture = vec3(mod(ip.x, 1.));
+		vec3 texture = vec3(abs(noise2(ip.xz * 50.)) * .3 + 0.5);
 
 		return vec3(light * ip.y * 2.) * texture;
 	}
