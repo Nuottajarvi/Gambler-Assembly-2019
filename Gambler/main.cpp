@@ -14,6 +14,7 @@
 #include "scene3.h"
 #include "scene4.h"
 #include "scene5.h"
+#include "scene6.h"
 #include "synth.h"
 
 const float screen_width = 640 * 2;
@@ -63,7 +64,7 @@ int main(void)
 
 	int sceneId = 0;
 
-	Scene(*scenes[])() = {scene1, scene2, scene4, scene5 };
+	Scene(*scenes[])() = {/*scene1, scene2 , scene3, scene4, scene5,*/ scene6};
 
 
 	GLuint vertex_buffer, element_buffer, vertex_shader, fragment_shader,
@@ -72,7 +73,6 @@ int main(void)
 	while (!glfwWindowShouldClose(window) && sceneId < sizeof(scenes) / sizeof(*(scenes))) {
 		GLint mvp_location, vpos_location, vworldpos_location, vtex_location, vnor_location, itime_location;
 
-		std::cout << "YAAAS " << sceneId << std::endl;
 		Scene scene = scenes[sceneId]();
 		sceneId++;
 
@@ -147,7 +147,7 @@ int main(void)
 		GLuint fbo_texture_location, v_coord_location, post_itime_location, pass_location;
 		GLuint vbo_fbo_vertices, vbo_fbo_indices;
 
-		bool hasPost = scene.postFragmentShader != "";
+		bool hasPost = false;// scene.postFragmentShader != "";
 		if (hasPost) {
 			glGenFramebuffers(2, framebuffer);
 
@@ -242,10 +242,11 @@ int main(void)
 			glfwGetFramebufferSize(window, &width, &height);
 			ratio = width / (float)height;
 
-			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[0]);
-			glBindTexture(GL_TEXTURE_2D, textureColorbuffer[0]);
-			glViewport(0, 0, width, height);
-
+			if (hasPost) {
+				glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[0]);
+				glBindTexture(GL_TEXTURE_2D, textureColorbuffer[0]);
+				glViewport(0, 0, width, height);
+			}
 			glClearColor(0.0, 0.0, 0.0, 1.0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			mat4x4_identity(m);
@@ -312,9 +313,15 @@ int main(void)
 		}
 		glDeleteProgram(program);
 		GLuint buffers[] = { 
-			vertex_buffer, element_buffer, vertex_shader, fragment_shader,
-			post_fragment_shader, post_vertex_shader, program, post_program
+			vertex_buffer, element_buffer, vertex_shader, fragment_shader, program
 		};
+
+		if (hasPost) {
+			GLuint postbuffers[] = {
+				post_fragment_shader, post_vertex_shader, post_program
+			};
+			memcpy(buffers + sizeof(buffers), postbuffers, sizeof(postbuffers));
+		}
 		glDeleteBuffers(sizeof(buffers) / sizeof(*(buffers)), buffers);
 	}
 	glfwDestroyWindow(window);
