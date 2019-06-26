@@ -6,7 +6,7 @@ uniform int iPass;
 
 out vec4 gl_FragColor;
 
-float offset = 0.001;
+float offset = 0.0005;
 
 void main(void) {
 	//blur
@@ -22,7 +22,7 @@ void main(void) {
 		}
 	}
 
-	col /= 3;
+	col /= 5;
 
 	gl_FragColor = vec4(col, 1.);
 }

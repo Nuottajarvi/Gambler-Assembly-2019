@@ -103,6 +103,15 @@ void main() {
 
 		vec3 bgCol = mix(vec3(0.1, 0.3, 0.1), vec3(0.3, 0.5, 0.05), bgFloat);
 		bgCol = mix(bgCol, vec3(.7, .7, 0.), osx);
+
+		//timebased
+		if(iTime < 1.) {
+			bgCol = mix(vec3(0.15), bgCol, iTime); 
+		}
+		if(iTime > 9.) {
+			bgCol = mix(bgCol, vec3(0.8), iTime - 9.); 
+		}
+
 		gl_FragColor = vec4(bgCol, 1.);
 	} else {
 		vec3 col = chip(red, uv);

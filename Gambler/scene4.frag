@@ -92,7 +92,7 @@ float rayMarch(vec3 eye, vec3 rayDir, float mint, float maxt) {
         }else if(depth >= maxt) {
         	return maxt;
         }
-        depth += dist;
+        depth += dist * .5;
     }
     return end;
 }
@@ -102,7 +102,7 @@ void main() {
 		vec3 eye = vec3(-0.3, 0.12, -8.);
 		vec3 rayDir = vec3(-.05 + uv.x * .1, -.05 + uv.y * .1, 1.0);
 
-		float time = 18. + iTime;
+		float time = 1. + iTime;
     
 		float maxT = 10.0;
 		float dist = rayMarch(eye, rayDir, 0.0, maxT);

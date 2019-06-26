@@ -25,5 +25,5 @@ Scene scene5() {
 
 	IndiceArray indices{ 0, 1, 2, 2, 3, 0 };
 
-	return { 60., vertices, indices, vertexShader.source, fragmentShader.source, getScene5Textures, post_vert.source, post_frag.source, 2 };
+	return { 37., vertices, indices, vertexShader.source, fragmentShader.source, getScene5Textures, post_vert.source, post_frag.source, 6 };
 }

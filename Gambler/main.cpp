@@ -9,6 +9,7 @@
 #include <string>
 #include "structs.h"
 #include "shaderReader.h"
+#include "scene1.h"
 #include "scene2.h"
 #include "scene3.h"
 #include "scene4.h"
@@ -62,7 +63,7 @@ int main(void)
 
 	int sceneId = 0;
 
-	Scene(*scenes[])() = {/*scene4,*/ scene5 };
+	Scene(*scenes[])() = {scene1, scene2, scene4, scene5 };
 
 
 	GLuint vertex_buffer, element_buffer, vertex_shader, fragment_shader,

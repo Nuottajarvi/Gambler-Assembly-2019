@@ -9,8 +9,7 @@ const float PI = 3.141592;
 
 const vec3 light = vec3(2., 8., 0.);
 
-const float rotSpeed = 0.1;
-const float flySpeed = 0.5;
+const float flySpeed = 1.5;
 
 vec2 hash( vec2 x ) {
     const vec2 k = vec2( 0.318, 0.367);
@@ -133,7 +132,7 @@ float rayMarch(vec3 eye, vec3 rayDir, float mint, float maxt) {
         }else if(depth >= maxt) {
         	return maxt;
         }
-        depth += dist;
+        depth += dist * .5;
     }
     return end;
 }
@@ -154,13 +153,32 @@ float rayTrace(vec3 eye, vec3 rayDir, float mint, float dt, float maxt) {
 vec3 rayMarches() {
 	//bullet
 	float bStart = .1;
-	float bEnd = 10.;
+	float bEnd = 20.;
 
-	float cameraHeight = mix(-0.12, 1., min(1, iTime * .25));
+	float rotX = 0.;
+	float rotY = 0.;
+
+	float rotT = 15.;
+
+	if(iTime < rotT) {
+		rotY = smoothstep(0., 1., iTime * (1 / rotT)) * 2.;
+	} else {
+		rotY = 2. - smoothstep(0., 1., (iTime - rotT) * .05) * (2 + PI / 2.);
+	}
+
+	float cameraHeight = 0.;
 	
-	vec3 bEye = rotationMatrixY(max(0., (iTime - 1.) * rotSpeed)) * vec3(-0.3, cameraHeight, -8.);
-	vec3 bRayDir = rotationMatrixY(max(0., (iTime - 1.) * rotSpeed)) *
-	rotationMatrixX(mix(0., -PI / 24., min(1, iTime * .25))) *
+	if(iTime < 32.) {
+		cameraHeight = mix(-0.12, 1., min(1, iTime * .25));
+		rotX = mix(0., -PI / 24., min(1, iTime * .25));
+	} else {
+		cameraHeight = mix(1., -0.12, (iTime - 32.) * (iTime - 32.) * .5);
+		rotX = mix(-PI / 24., 0., (iTime - 32.) * (iTime - 32.) * .5);
+	}
+	
+	vec3 bEye = rotationMatrixY(rotY) * vec3(-0.3, cameraHeight, -8.);
+	vec3 bRayDir = rotationMatrixY(rotY) *
+	rotationMatrixX(rotX) *
 	vec3(-.05+uv.x*.1, -.05+uv.y*.1, 1.0);
 	float dist = rayMarch(bEye, bRayDir, bStart, bEnd);
 
@@ -178,9 +196,10 @@ vec3 rayMarches() {
 		return hue * diffuse + specular;
 	} else {
 		//terrain
-		vec3 eye = rotationMatrixY(max(0., (iTime - 1.) * rotSpeed)) * vec3(0., 1., .0) + vec3(iTime * flySpeed, 0., 0.);
-		vec3 rayDir = rotationMatrixY(max(0., (iTime - 1.) * rotSpeed)) *
-		rotationMatrixX(mix(0., -PI / 24., min(1, iTime * .25))) *
+		vec3 eye = rotationMatrixY(rotY) *
+		vec3(0., 1., .0) + vec3(iTime * flySpeed, 0., 0.);
+		vec3 rayDir = rotationMatrixY(rotY) *
+		rotationMatrixX(rotX) *
 		vec3(-.05+uv.x*.1, -.05+uv.y*.1, 1.0);
 		float depth = start;
 
@@ -205,7 +224,7 @@ vec3 rayMarches() {
 		//return n;
 
 		//vec3 texture = vec3(mod(ip.x, 1.));
-		vec3 texture = vec3(abs(noise2(ip.xz * 50.)) * .3 + 0.5);
+		vec3 texture = vec3(abs(noise2(mod(ip.xz * 50., vec2(200.)))) * .3 + 0.5);
 
 		return vec3(light * ip.y * 2.) * texture;
 	}

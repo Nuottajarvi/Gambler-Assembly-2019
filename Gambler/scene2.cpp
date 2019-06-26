@@ -97,6 +97,9 @@ Scene scene2() {
 	shaderReader vertexShader = shaderReader("scene2.vert");
 	shaderReader fragmentShader = shaderReader("scene2.frag");
 
+	shaderReader post_vert = shaderReader("post.vert");
+	shaderReader post_frag = shaderReader("antialias-post.frag");
+
 	createBg(vertices, indices);
 
 	for (int i = 0; i < 250; i++) {
@@ -107,5 +110,5 @@ Scene scene2() {
 		createChip({ -10.f + rx * 20.f, -8.f + ry * 16.f, -rz * 30.f - 2.f }, vertices, indices);
 	}
 
-	return {1, vertices, indices, vertexShader.source, fragmentShader.source, 0 };
+	return {10., vertices, indices, vertexShader.source, fragmentShader.source, 0 ,post_vert.source, post_frag.source, 2 };
 }

@@ -67,6 +67,11 @@ float tiltedSin(float t) {
 
 void main() {
     // Normalized pixel coordinates (from 0 to 1)
+	
+    float phase1 = 1.;
+    float phase2 = 25.;
+    float phase3 = 40.;
+
     float t = iTime;
     
     vec3 col = vec3(0.15);
@@ -96,9 +101,6 @@ void main() {
     vec4 hg = vec4(0.0);
     vec2 wg = vec2(1.);
     vec2 rg = vec2(0.);
-    
-    float phase1 = 1.;
-    float phase2 = 25.;
     
     //PHASE 1
     if(t < phase1) {
@@ -179,10 +181,18 @@ void main() {
             h0 = vec4(mov1.y + .5) * 2.;
             h2 = h1 = h0;
             
-        }else{
+        } else {
         	float xt = t - (phase2 + 3.);
-            vec2 mov0 = vec2(0., tiltedSin(xt * 5.)) * 0.2;
-            vec2 mov1 = vec2(0., tiltedSin((xt + PI) * 5.)) * 0.2;
+            vec2 mov0 = vec2(0., tiltedSin(xt * 5.)) * 0.2 * max(1., t - 36.);
+            vec2 mov1 = vec2(0., tiltedSin((xt + PI) * 5.)) * 0.2 * max(1., t - 36.5);
+
+			if(t > 38.) {
+				mov0 = vec2(-5.);
+			}
+			if(t > 38.5) {
+				mov1 = vec2(-5.);
+			}
+
             p0 += mov1;
             p1 += mov1;
             p2 += mov1;
