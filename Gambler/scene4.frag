@@ -98,7 +98,7 @@ float rayMarch(vec3 eye, vec3 rayDir, float mint, float maxt) {
 }
 
 void main() {
-	if(isBg > 0.) {
+	if(isBg > EPSILON) {
 		vec3 eye = vec3(-0.3, 0.12, -8.);
 		vec3 rayDir = vec3(-.05 + uv.x * .1, -.05 + uv.y * .1, 1.0);
 

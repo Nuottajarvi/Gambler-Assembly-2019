@@ -36,6 +36,7 @@ mat3 rotationMatrixZ(float rad) {
 
 void main()
 {
+	isBg = 0.;
 	if(vWorldPos == vec3(0.)) {
 		isBg = 1.;
 		uv = vTex;

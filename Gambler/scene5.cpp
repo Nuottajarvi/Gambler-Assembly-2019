@@ -2,11 +2,7 @@
 #include "shaderReader.h"
 #include "structs.h"
 #include <iostream>
-
-TextureArray getScene5Textures(GLuint program) {
-	TextureArray textures;
-	return textures;
-}
+#include "scene5.h"
 
 Scene scene5() {
 
@@ -25,5 +21,5 @@ Scene scene5() {
 
 	IndiceArray indices{ 0, 1, 2, 2, 3, 0 };
 
-	return { 37., vertices, indices, vertexShader.source, fragmentShader.source, getScene5Textures, post_vert.source, post_frag.source, 6 };
+	return { 37., vertices, indices, vertexShader.source, fragmentShader.source, 0, post_vert.source, post_frag.source, 6 };
 }

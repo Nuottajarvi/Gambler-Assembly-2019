@@ -14,8 +14,9 @@
 #include "scene3.h"
 #include "scene4.h"
 #include "scene5.h"
-#include "scene6.h"
-#include "synth.h"
+//#include "scene6.h"
+#include "scene7.h"
+//#include "synth.h"
 
 const float screen_width = 640 * 2;
 const float screen_height = 360 * 2;
@@ -64,7 +65,7 @@ int main(void)
 
 	int sceneId = 0;
 
-	Scene(*scenes[])() = {/*scene1, scene2 , scene3, scene4, scene5,*/ scene6};
+	Scene(*scenes[])() = {/*scene1, scene2 , scene3, scene4, scene5, scene6, */ scene7};
 
 
 	GLuint vertex_buffer, element_buffer, vertex_shader, fragment_shader,
@@ -147,7 +148,7 @@ int main(void)
 		GLuint fbo_texture_location, v_coord_location, post_itime_location, pass_location;
 		GLuint vbo_fbo_vertices, vbo_fbo_indices;
 
-		bool hasPost = false;// scene.postFragmentShader != "";
+		bool hasPost = scene.postFragmentShader != "";
 		if (hasPost) {
 			glGenFramebuffers(2, framebuffer);
 
@@ -257,6 +258,7 @@ int main(void)
 
 			glUniform1f(itime_location, time);
 			for (int i = 0; i < textures.size(); i++) {
+				glBindTexture(GL_TEXTURE_2D, textures[i]);
 				glUniform1i(textures[i], i);
 			}
 

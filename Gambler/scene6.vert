@@ -7,7 +7,7 @@ in vec3 vWorldPos;
 in vec2 vTex;
 in vec3 vNor;
 
-out float isBg;
+out float isFg;
 out float isBack;
 out vec3 n;
 out mat3 rot;
@@ -39,36 +39,65 @@ mat3 rotationMatrixZ(float rad) {
     );
 }
 
-vec3 bounce(float str, float t) {
+vec3 bounce(float str, float t, float id) {
 
+	t -= id * .5;
+	
 	float bounceAmt = floor(t / PI);
 
 	float extraBounce = max(0., 3. - ((t - PI / 2.) * 2.));
 
+	float dirx = -0.5;
+	float dirz = 0.1;
+
+	if(abs(id) < EPSILON) {
+		dirx = -0.25;
+		dirz = 0.3;
+	} else if(abs(id - 2.) < EPSILON) {
+		dirx = 0.;
+		dirz = 1.;
+	}
+
 	return vec3(
-		min(str, max(0., t / str)) * .2,
+		min(8.4 + id*.5, t) * dirx / str,
 		-abs(sin(t)) * max(0., str - bounceAmt) - extraBounce,
-		min(str, max(0., t / str)) * .5
+		min(8.4 + id*.5, t) * dirz / str
 	);
 }
 
+
 void main()
 {
+    float id = vWorldPos.y;
+	float nid = 
+		abs(id - 2.) < EPSILON ? 1. : 
+		abs(id - 1.) < EPSILON ? 2. : 
+		0;
 	float t = iTime + PI / 2.;
 	float str = 3.;
-	float z = log(1. / min(iTime + 0.5, 8.4));
+	float z = log(1. / min((iTime + 0.5 - 0.5 * nid), 8.4));
 	float rotSpeed = -z * 2. + 3.6;
-	rot = rotationMatrixX(rotSpeed) * rotationMatrixZ(.4 * rotSpeed);
-	vec3 npos = vPos;
-	if(vWorldPos.x > 0) {
-		npos = rot * npos + vec3(0., 0., -8) + bounce(str, t) + vec3(vWorldPos.y * 3., 0., 0.);
-	}
 
-	gl_Position = MVP * vec4(npos, 1.0);
+	float xspeed = nid == 0. ? 1. : nid == 1. ? 2.619 : 0.82;
+	float zspeed = nid == 1. ? 1.3 : 1.;
+
+	rot = rotationMatrixX(rotSpeed * xspeed) * rotationMatrixZ(.4 * rotSpeed * zspeed);
+	vec3 npos = vPos;
+	if(vWorldPos.x > EPSILON) {
+		npos = rot * npos + vec3(0., 0., -8) + bounce(str, t, nid) + vec3(3 - id * 3., 0., 0.);
+	};
+
 	uv = vTex;
-	if(vWorldPos.x == 0.) {
-		isBg = 1.;
-	} else if(vWorldPos.x == 2){
+	isFg = 0.;
+	isBack = 0.;
+	if(vWorldPos.x < EPSILON) {
+		isFg = 1.;
+		gl_Position = vec4(vPos, 1.0);
+	} else {
+		gl_Position = MVP * vec4(npos, 1.0);
+	}
+	
+	if(vWorldPos.x >= 2 - EPSILON){
 		isBack = 1.;
 	}
 
