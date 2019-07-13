@@ -15,6 +15,8 @@ const vec3 purple = vec3(42., 8., 59.) / 255.;
 const vec3 floorCol = vec3(158., 99., 47.) / 255.;
 const vec3 ballPos = vec3(.2, -0.15, 0.);
 
+vec3 light = vec3(2., 1., -2.);//vec3(-8., 6., -2.);
+
 mat3 rotationMatrixY(float rad) {
     return mat3(
         vec3(cos(rad), 0.0, sin(rad)),
@@ -71,8 +73,6 @@ float angle(vec2 vec) {
 }
 
 vec3 colPillar(vec3 p) {
-
-
 	if(mod(angle(p.xz) + PI / 6., PI / 3.) < PI / 64.) {
 			return vec3(0., 1., 1.);
 	} else if(mod(angle(abs(p.xz)), PI / 3.) < PI / 32.) {
@@ -96,9 +96,8 @@ vec2 unedge(vec2 p) {
 }
 
 float getCol(vec2 p) {
-    return mod(p.x, 3.) * .5 + mod(p.y + 1., 3.) * .2 + .5; 
+    return mod(p.x, 2.) * .5 + mod(p.y + 1., 2.) * .5 + .5; 
 }
-
 
 vec3 floorTexture(vec2 p) {
 	p *= 20.;
@@ -136,7 +135,10 @@ vec4 sdfPlane(vec3 p, vec4 n, float dist) {
 
 vec4 sdfPillar( vec3 p, vec2 h ) {
 	vec2 d = abs(vec2(length(p.xz) + min(0., p.y * p.y * p.y * 8.), p.y)) - h;
-	vec3 pillarCol = colPillar(p);
+			
+	float diffuse = max(0., dot(light, vec3(p.x, 0., p.z))) * .2 + .4;
+
+	vec3 pillarCol = colPillar(p) * diffuse;
 	pillarCol *= 1. - vec3(max(0., -p.y - 0.1) * 10.);
 	return vec4(
 		pillarCol,
@@ -147,8 +149,6 @@ vec4 sdfPillar( vec3 p, vec2 h ) {
 vec4 sdfBall(vec3 p, float s) {
 	vec3 b = vec3(s);
 	vec3 d = abs(p) - b;
-    //float dist = length(max(d,0.0))
-    //     + min(max(d.x,max(d.y,d.z)),0.0);
 
 	float dist = length(p) - s;
 
@@ -162,21 +162,24 @@ vec4 sdfBall(vec3 p, float s) {
 	
 	return vec4(col, dist);
 }
-  
-vec4 SDF(vec3 p, float depth, inout bool doReflect) {
-	vec3 dist = vec3(.5, 0., 2.);
+
+vec4 SDF(vec3 p, float depth, inout bool doReflect, inout bool doShadow) {
+	vec3 dist = vec3(.75, 0., .75);
 	vec3 modp = mod(p, dist) - dist * .5;
 	vec4 pillar = sdfPillar(modp, vec2(.05, .25));
 	vec4 floor = sdfPlane(p, vec4(0., -1., 0., 0.2), depth);
 	vec4 ball = sdfBall(p + ballPos, 0.05);
 
 	doReflect = false;
+	doShadow = false;
 	if(ball.a < pillar.a && ball.a < floor.a) {
 		doReflect = true;
 		return ball;
-	} else if(pillar.a < floor.a) {
+	} else 
+	if(pillar.a < floor.a) {
 		return pillar - vec4(pillar.rgb * vec3(depth * .04), 0.);
 	} else {
+		doShadow = true;
 		return vec4(floor.rgb - vec3(depth * .04), floor.w);
 	}
 }
@@ -185,20 +188,20 @@ vec3 getNormal(vec3 p) {
     float E = EPSILON;
 	bool b;
     return normalize(vec3(
-        SDF(vec3(p.x + E, p.y, p.z), 0., b).a - SDF(vec3(p.x - E, p.y, p.z), 0., b).a,
-        SDF(vec3(p.x, p.y + E, p.z), 0., b).a - SDF(vec3(p.x, p.y - E, p.z), 0., b).a,
-        SDF(vec3(p.x, p.y, p.z + E), 0., b).a - SDF(vec3(p.x, p.y, p.z - E), 0., b).a
+        SDF(vec3(p.x + E, p.y, p.z), 0., b, b).a - SDF(vec3(p.x - E, p.y, p.z), 0., b, b).a,
+        SDF(vec3(p.x, p.y + E, p.z), 0., b, b).a - SDF(vec3(p.x, p.y - E, p.z), 0., b, b).a,
+        SDF(vec3(p.x, p.y, p.z + E), 0., b, b).a - SDF(vec3(p.x, p.y, p.z - E), 0., b, b).a
     ));
 }
 
-vec4 rayMarch(vec3 eye, vec3 rayDir, float mint, float maxt, inout vec3 refPos, inout vec3 refDir) {
+vec4 rayMarch(vec3 eye, vec3 rayDir, float mint, float maxt, inout vec3 refPos, inout vec3 refDir, inout bool doShadow) {
 	float depth = mint;
 
 	vec4 data;
 
     for(int i = 0; i < 3500; i++) {
 		bool doReflect = false;
-   		data = SDF(eye + rayDir * depth, depth, doReflect);
+   		data = SDF(eye + rayDir * depth, depth, doReflect, doShadow);
 		
 		float dist = data.a;
         
@@ -219,49 +222,63 @@ vec4 rayMarch(vec3 eye, vec3 rayDir, float mint, float maxt, inout vec3 refPos, 
     return vec4(vec3(0.), maxt);
 }
 
-void main() {
-	vec3 light = vec3(8., -6., 12.);
+vec3 shadow(vec3 p) {
+	vec3 dir = vec3(0., -1., 0.);
+	vec3 nullV = vec3(0.);
+	bool nullB = false;
+	float end = 2.;
+	vec4 data = rayMarch(p, dir, .02, end, nullV, nullV, nullB);
 
-	vec3 eye =  rotationMatrixY(-iTime * .025) * vec3(-0.3, 0.12, -2);
-	vec3 rayDir = rotationMatrixX(sin(iTime * 0.5) * 0.05) * rotationMatrixY(-iTime * .025) * vec3(-.05 + uv.x * .1, -.05 + uv.y * .1, 1.0);
+	if(data.w >= end - 1.) {
+		return vec3(0.);
+	} else {
+		return vec3(.5);
+	}
+}
+
+void main() {
+
+	mat3 rot = rotationMatrixY(-iTime * .025 + 0.075);
+	vec3 eye =  rot * vec3(0., 0.12, -2.5) - vec3(0.4, 0., 0.);
+	vec3 rayDir = rotationMatrixX(sin(iTime * 0.5) * 0.05 + 0.012) * rot * vec3(-.05 + uv.x * .1, -.05 + uv.y * .1, 1.0);
     
 	vec3 refPos;
 	vec3 refDir;
-	vec4 data = rayMarch(eye, rayDir, 0.0, end, refPos, refDir);
+	bool doShadow = false;
+	vec4 data = rayMarch(eye, rayDir, 0., end, refPos, refDir, doShadow);
+	
+	float dist = data.a;
+	vec3 p = eye + rayDir * dist;
+	vec3 n = getNormal(p);
 
 	if(length(refPos) > 0.1) {
 	    vec3 nullV = vec3(0.);
+	    bool nullB = false;
 		vec3 increasedPos = (refPos + ballPos) * 1.1 - ballPos;
 		data *= 0.5;
-		data += rayMarch(increasedPos, refDir, 0.0, end, nullV, nullV);
+		data += rayMarch(increasedPos, refDir, 0.0, end, nullV, nullV, nullB);
 
 		data = max(vec4(0.), data);
-		data += vec4(0.1);
+		data += vec4(0.02);
+
+		vec3 viewDir = normalize(-rayDir);
+		vec3 specularDir = reflect(normalize(light), n);
+		float specular = pow(max(dot(viewDir, specularDir), 0.0), 32.);
+
 		data.w = 0.;
 
-		vec3 viewDir = normalize(-rayDir);
-		vec3 specularDir = reflect(normalize(-light), normalize(-refDir));
-		float specular = pow(max(dot(viewDir, specularDir), 0.0), 32.);
-
-		//float specular = dot(viewDir, specularDir) * 100.;
-
-		data = vec4(vec3(specular), 1.);
+		data += vec4(vec3(specular), 0.);
 	}
 
-	float dist = data.a;
-
 	if (dist < end - EPSILON) {
-		vec3 n = getNormal(eye + rayDir * dist);
+		vec3 shadowAmt = vec3(0.);
+		if(doShadow) {
+			shadowAmt = shadow(p);
+		}
+		color = vec4(data.rgb - shadowAmt, 1.);
 
-		float diffuse = max(0., dot(light, n)) * .2 + .4;
-
-		vec3 viewDir = normalize(-rayDir);
-		vec3 specularDir = reflect(normalize(-light), n);
-		float specular = pow(max(dot(viewDir, specularDir), 0.0), 32.);
-
-		vec4 hue = vec4(data.rgb, 1.);
-
-		color = hue;// * diffuse + specular;
+		//color = hue;
+		//color = vec4(shadow(p), 1.);
 	} else {
 		color = vec4(0., 0., 0., 1.);
 	}

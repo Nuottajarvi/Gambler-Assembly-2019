@@ -14,7 +14,7 @@
 #include "scene3.h"
 #include "scene4.h"
 #include "scene5.h"
-//#include "scene6.h"
+#include "scene6.h"
 #include "scene7.h"
 //#include "synth.h"
 
@@ -65,7 +65,7 @@ int main(void)
 
 	int sceneId = 0;
 
-	Scene(*scenes[])() = {/*scene1, scene2 , scene3, scene4, scene5, scene6, */ scene7};
+	Scene(*scenes[])() = {scene1, scene2 , scene3, scene4, scene5, scene6, scene7};
 
 
 	GLuint vertex_buffer, element_buffer, vertex_shader, fragment_shader,
