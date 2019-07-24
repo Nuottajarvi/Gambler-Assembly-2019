@@ -20,7 +20,7 @@ Scene scene6() {
 	shaderReader fragmentShader = shaderReader("scene6.frag");
 
 	shaderReader post_vert = shaderReader("post.vert");
-	shaderReader post_frag = shaderReader("scene6-post.frag");
+	shaderReader post_frag = shaderReader("antialias-post.frag");
 
 	objReader("dicebk.obj", vertices, indices, { 2, 0, 0 });
 	objReader("dice.obj", vertices, indices, { 1, 0, 0 });
@@ -31,5 +31,5 @@ Scene scene6() {
 	objReader("dicebk.obj", vertices, indices, { 2, 2, 0 });
 	objReader("dice.obj", vertices, indices, { 1, 2, 0 });
 
-	return { 100. , vertices, indices, vertexShader.source, fragmentShader.source, getTextures6, post_vert.source, post_frag.source, 1 };
+	return { 12. , vertices, indices, vertexShader.source, fragmentShader.source, getTextures6, post_vert.source, post_frag.source, 1 };
 }

@@ -16,6 +16,7 @@
 #include "scene5.h"
 #include "scene6.h"
 #include "scene7.h"
+#include "textureLoader.h"
 //#include "synth.h"
 
 const float screen_width = 640 * 2;
@@ -65,7 +66,7 @@ int main(void)
 
 	int sceneId = 0;
 
-	Scene(*scenes[])() = {scene1, scene2 , scene3, scene4, scene5, scene6, scene7};
+	Scene(*scenes[])() = {scene1, scene2, scene3, scene4, scene5, scene6, scene7};
 
 
 	GLuint vertex_buffer, element_buffer, vertex_shader, fragment_shader,
@@ -228,14 +229,16 @@ int main(void)
 
 		float lastTime = 0.;
 
-		std::cout << glfwWindowShouldClose(window) << std::endl;
+		std::cout << "WINDOW  SHOULD CLOSE " << glfwWindowShouldClose(window) << std::endl;
 
 		while (!glfwWindowShouldClose(window)) {
 			float time = (float)glfwGetTime() - startTime;
-			std::cout << 1.f / (time - lastTime) << std::endl;
+			//std::cout << 1.f / (time - lastTime) << std::endl;
 
-			if (time > scene.length)
+			if (time > scene.length) {
 				break;
+			}
+
 			lastTime = time;
 			float ratio;
 			int width, height;
@@ -313,6 +316,11 @@ int main(void)
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 		}
+
+		resetTextures();
+		if(textures.size() > 0)
+			glDeleteTextures(textures.size(), (const GLuint*) &textures[0]);
+
 		glDeleteProgram(program);
 		GLuint buffers[] = { 
 			vertex_buffer, element_buffer, vertex_shader, fragment_shader, program

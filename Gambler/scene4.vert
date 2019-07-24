@@ -53,14 +53,14 @@ void main()
 			z += 9. - time * .5;
 			zRot = PI / 1.5;
 			xRot = PI / 2.;
-		} else if(time < 23.5) {
+		} else if(time < 23.) {
 			float t = time - 18.;
 			float slerp = smoothstep(0., 1., t * 0.2);
 			zRot = mix(PI / 1.5, 0., slerp);
 			xRot = mix(PI / 2., 0., slerp);
 		} else {
-			float t = time - 23.5;
-			float t2 = time - 24.5;
+			float t = time - 23.;
+			float t2 = time - 24.;
 			//zRot = mix(0., PI / 4., min(1., t * 5.));
 			//y = max(-2., -t * 10.);
 			xRot = 0.;

@@ -275,7 +275,18 @@ void main() {
 		if(doShadow) {
 			shadowAmt = shadow(p);
 		}
-		color = vec4(data.rgb - shadowAmt, 1.);
+
+		vec4 startFade = mix(
+			vec4(0.),
+			vec4(data.rgb - shadowAmt, 1.),
+			min(1., max(0., iTime - 1.))
+		);
+
+		color =	mix(
+			startFade,
+			vec4(0.),
+			min(1., max(0., iTime - 29.))
+		);
 
 		//color = hue;
 		//color = vec4(shadow(p), 1.);

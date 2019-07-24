@@ -78,7 +78,7 @@ void main()
 	float z = log(1. / min((iTime + 0.5 - 0.5 * nid), 8.4));
 	float rotSpeed = -z * 2. + 3.6;
 
-	float xspeed = nid == 0. ? 1. : nid == 1. ? 2.619 : 0.82;
+	float xspeed = nid == 0. ? 1. : nid == 1. ? 2.6 : 0.82;
 	float zspeed = nid == 1. ? 1.3 : 1.;
 
 	rot = rotationMatrixX(rotSpeed * xspeed) * rotationMatrixZ(.4 * rotSpeed * zspeed);

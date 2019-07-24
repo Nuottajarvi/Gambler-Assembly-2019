@@ -48,6 +48,15 @@
     <ClCompile Include="synth.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="scene4.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scene6.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scene7.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="scene1.vert">
@@ -74,6 +83,36 @@
     <None Include="scene5.frag">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="scene4.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="scene4.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="scene4-post.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="post.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="antialias-post.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="scene6.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="scene6.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="scene6-post.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="scene7.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="scene7.vert">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shaderReader.h">
@@ -95,6 +134,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="textureLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scene4.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scene1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scene6.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scene7.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="synth.h">

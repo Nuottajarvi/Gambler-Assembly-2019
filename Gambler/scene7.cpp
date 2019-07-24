@@ -27,5 +27,5 @@ Scene scene7() {
 
 	IndiceArray indices{ 0, 1, 2, 2, 3, 0 };
 
-	return { 1000., vertices, indices, vertexShader.source, fragmentShader.source, getTextures7, post_vert.source, post_frag.source, 6 };
+	return { 300., vertices, indices, vertexShader.source, fragmentShader.source, getTextures7, post_vert.source, post_frag.source, 6 };
 }

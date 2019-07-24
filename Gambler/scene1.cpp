@@ -20,5 +20,5 @@ Scene scene1() {
 
 	IndiceArray indices{ 0, 1, 2, 2, 3, 0 };
 
-	return { 39., vertices, indices, vertexShader.source, fragmentShader.source, 0, post_vert.source, post_frag.source, 2 };
+	return { 42.159, vertices, indices, vertexShader.source, fragmentShader.source, 0, post_vert.source, post_frag.source, 2 };
 }

@@ -19,13 +19,19 @@ void main() {
 	float flip = isBack > 0. ? -1. : 1.;
 	float lightAmt = max(0., dot(light, rot * n * flip)) * .1 + .3; 
 	vec3 col = texture(diceTex, uv).rgb;
-	vec3 lightedCol = col * lightAmt;
 
 	float a = 0.7;
 
 	if(col.b >= 1. - EPSILON) {
 		a = .9;
 	}
+
+	float fadeoutTime = 10.;
+	float c = fadeoutTime - max(fadeoutTime, iTime);
+
+	a += c;
+	
+	vec3 lightedCol = col * lightAmt;
 	
 	fragColor = vec4(lightedCol, a);
 }

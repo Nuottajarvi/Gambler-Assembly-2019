@@ -155,26 +155,43 @@
     <ClCompile Include="scene1.cpp" />
     <ClCompile Include="scene2.cpp" />
     <ClCompile Include="scene3.cpp" />
+    <ClCompile Include="scene4.cpp" />
     <ClCompile Include="scene5.cpp" />
     <ClCompile Include="scene5.h" />
+    <ClCompile Include="scene6.cpp" />
+    <ClCompile Include="scene7.cpp" />
     <ClCompile Include="shaderReader.cpp" />
     <ClCompile Include="synth.cpp" />
     <ClCompile Include="textureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="antialias-post.frag" />
     <None Include="scene1.frag" />
     <None Include="scene1.vert" />
     <None Include="scene2.frag" />
     <None Include="scene2.vert" />
     <None Include="scene3.frag" />
     <None Include="scene3.vert" />
+    <None Include="scene4-post.frag" />
+    <None Include="post.vert" />
+    <None Include="scene4.frag" />
     <None Include="scene5.frag" />
     <None Include="scene5.vert" />
+    <None Include="scene4.vert" />
+    <None Include="scene6-post.frag" />
+    <None Include="scene6.frag" />
+    <None Include="scene6.vert" />
+    <None Include="scene7.frag" />
+    <None Include="scene7.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="objReader.h" />
+    <ClInclude Include="scene1.h" />
     <ClInclude Include="scene2.h" />
     <ClInclude Include="scene3.h" />
+    <ClInclude Include="scene4.h" />
+    <ClInclude Include="scene6.h" />
+    <ClInclude Include="scene7.h" />
     <ClInclude Include="shaderReader.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="structs.h" />

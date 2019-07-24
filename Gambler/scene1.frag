@@ -13,9 +13,9 @@ const vec3 red = vec3(142./255., 19./255., 12./255.);
 const vec3 green = vec3(0., 150./255., 91./255.) * .8;
 
 struct chipM {
-	vec4 h;
-    vec2 w;
-    vec2 r;
+	vec4 h; //radius: outer white, red in between, white stripe
+    vec2 w; //width: outer, inner
+    vec2 r; //rotation: outer, inner
 };
 
 vec3 chip(vec3 col, vec3 chipCol, vec2 uv, vec2 pos, chipM chipM) {
@@ -65,7 +65,7 @@ void main() {
     // Normalized pixel coordinates (from 0 to 1)
 	
     float phase1 = 1.;
-    float phase2 = 25.;
+    float phase2 = 28.159;//27.64;
     float phase3 = 40.;
 
     float t = iTime;
@@ -97,6 +97,9 @@ void main() {
     vec4 hg = vec4(0.0);
     vec2 wg = vec2(1.);
     vec2 rg = vec2(0.);
+
+	
+	const float mros = 10.5;
     
     //PHASE 1
     if(t < phase1) {
@@ -106,9 +109,15 @@ void main() {
     //PHASE 2
     else if(t < phase2) {
         
-        float beatPower = min(.6, .3 / (t / 25.)) - .3;
+        float beatPower = min(.6, .3 / (t / phase2)) - .3;
+		//some extra power in middle
+		float beat8 = 20.106;
+		if(t > beat8) {
+			beatPower += sin(((t - beat8) * PI) / (phase2 - beat8)) * .1;
+		}
         float d0 = tiltedSin((t-phase1) * 5.) * beatPower;
         float d1 = tiltedSin(((t-phase1) + PI) * 5.) * beatPower;
+
         h0 = vec4(d0 + 1.);
         h1 = vec4(d1 + 1.);
         h2 = h0;
@@ -126,9 +135,9 @@ void main() {
             if(t > a + 7.5) {
             	r1 = vec2(7.5 * (-7.5 + 7.5 * .5));
                 //middle rot speed
-                if(t > a + 9.) {
-                    float mrs = min(t - (a + 9.), .5);
-                	r.y += mrs*-4.*(t - (a+9.));
+                if(t > a + mros) {
+                    float mrs = min(t - (a + mros), .5);
+                	r.y += mrs*-4.*(t - (a + mros));
                 }
             }
         }
@@ -145,28 +154,33 @@ void main() {
         }
     }
     //PHASE 3
-    if(t > phase2 && t < 30000.) {        
+   if(t > phase2 && t < 30000.) {        
         if(t < phase2 + 2.) {
             r = vec2(t);
             float xt = t - phase2;
             float mt = mod(t + 1., 2.);
+			if(t > 29.) {
+				mt = 0.;
+			}
             float val = -1.*(mt-1.)*(mt-1.) + 1. - xt * 0.2; 
         	w0.x = val;
             w2.x = w0.x;
             
             //middle rot
             float a = 10.35;
-            float mrs = min(t - (a + 9.), .5);
-            r.y += mrs*-4.*(t - (a+9.));
+            float mrs = min(t - (a + mros), .5);
+            r.y += mrs*-4.*(t - (a + mros));
             
             r0.x = .2*val - .25;
             r1 = vec2(7.5 * (-7.5 + 7.5 * .5));
             r2.x = r0.x;
             
+			//before jump part the width goes to zero
             w0.y = 1. - xt * .5;
             w2.y = w0.y;
             w1 = vec2(1. - xt * .5);
         }else if(t < phase2 + 3.) {
+			//first time falling
             w = vec2(0.);
             float xt = t - (phase2 + 2.);
             vec2 mov1 = vec2(0., tiltedSin(xt + PI) * 0.2);
@@ -179,13 +193,13 @@ void main() {
             
         } else {
         	float xt = t - (phase2 + 3.);
-            vec2 mov0 = vec2(0., tiltedSin(xt * 5.)) * 0.2 * max(1., t - 36.);
-            vec2 mov1 = vec2(0., tiltedSin((xt + PI) * 5.)) * 0.2 * max(1., t - 36.5);
+            vec2 mov0 = vec2(0., tiltedSin(xt * 5.)) * 0.2 * max(1., t - 39.159);
+            vec2 mov1 = vec2(0., tiltedSin((xt + PI) * 5.)) * 0.2 * max(1., t - 39.659);
 
-			if(t > 38.) {
+			if(t > 41.159) {
 				mov0 = vec2(-5.);
 			}
-			if(t > 38.5) {
+			if(t > 41.659) {
 				mov1 = vec2(-5.);
 			}
 
