@@ -7,6 +7,7 @@
 #include <math.h>
 #include <iostream>
 #include <string>
+#include <mmsystem.h>
 #include "structs.h"
 #include "shaderReader.h"
 #include "scene1.h"
@@ -17,10 +18,14 @@
 #include "scene6.h"
 #include "scene7.h"
 #include "textureLoader.h"
-//#include "synth.h"
 
-const float screen_width = 640 * 2;
-const float screen_height = 360 * 2;
+const float screen_width = 640 * 2;//1920;
+const float screen_height = 360 * 2;//1080;
+
+const float test_screen_width = 640 * 2;
+const float test_screen_height = 360 * 2;
+
+const float songStartDelay = 0.5;
 
 static void error_callback(int error, const char* description)
 {
@@ -43,7 +48,10 @@ int main(void)
 		exit(EXIT_FAILURE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-	window = glfwCreateWindow(screen_width, screen_height, "Gambler", NULL, NULL);
+	window = glfwCreateWindow(screen_width, screen_height, "Gambler", NULL/*glfwGetPrimaryMonitor()*/, NULL);
+
+	//test screen
+	//window = glfwCreateWindow(test_screen_width, test_screen_height, "Gambler", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
@@ -66,12 +74,15 @@ int main(void)
 
 	int sceneId = 0;
 
-	Scene(*scenes[])() = {scene1, scene2, scene3, scene4, scene5, scene6, scene7};
+	Scene(*scenes[])() = {/*scene1, scene2, scene3, scene4, scene5, scene6,*/ scene7};
 
 
 	GLuint vertex_buffer, element_buffer, vertex_shader, fragment_shader,
 		post_fragment_shader, post_vertex_shader, program, post_program;
 
+
+	ShowCursor(0);
+	PlaySound("./music.wav", NULL, SND_ASYNC);
 	while (!glfwWindowShouldClose(window) && sceneId < sizeof(scenes) / sizeof(*(scenes))) {
 		GLint mvp_location, vpos_location, vworldpos_location, vtex_location, vnor_location, itime_location;
 
@@ -229,11 +240,9 @@ int main(void)
 
 		float lastTime = 0.;
 
-		std::cout << "WINDOW  SHOULD CLOSE " << glfwWindowShouldClose(window) << std::endl;
-
 		while (!glfwWindowShouldClose(window)) {
 			float time = (float)glfwGetTime() - startTime;
-			//std::cout << 1.f / (time - lastTime) << std::endl;
+			std::cout << 1.f / (time - lastTime) << std::endl;
 
 			if (time > scene.length) {
 				break;

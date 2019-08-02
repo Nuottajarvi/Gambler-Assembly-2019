@@ -31,5 +31,5 @@ Scene scene6() {
 	objReader("dicebk.obj", vertices, indices, { 2, 2, 0 });
 	objReader("dice.obj", vertices, indices, { 1, 2, 0 });
 
-	return { 12. , vertices, indices, vertexShader.source, fragmentShader.source, getTextures6, post_vert.source, post_frag.source, 1 };
+	return { 13. , vertices, indices, vertexShader.source, fragmentShader.source, getTextures6, post_vert.source, post_frag.source, 1 };
 }

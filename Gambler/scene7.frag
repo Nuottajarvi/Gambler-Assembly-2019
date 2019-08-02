@@ -125,12 +125,22 @@ vec3 floorTexture(vec2 p) {
         }
     }
     
-	return shade * floorCol;
+	return shade * floorCol * .7;
 }
 
 vec4 sdfPlane(vec3 p, vec4 n, float dist) {
 	vec3 tex = floorTexture(p.xz);
 	return vec4(tex, dot(p, n.xyz) + n.w);
+}
+
+bool intersectPlane(vec3 n, vec3 p0, vec3 eye, vec3 rayDir, out float t) {
+	float denom = dot(n, rayDir);
+	if(denom > EPSILON) {
+		vec3 p0l0 = p0 - eye;
+		t = dot(p0l0, n) / denom;
+		return (t >= 0.);
+	}
+	return false;
 }
 
 vec4 sdfPillar( vec3 p, vec2 h ) {
@@ -163,24 +173,18 @@ vec4 sdfBall(vec3 p, float s) {
 	return vec4(col, dist);
 }
 
-vec4 SDF(vec3 p, float depth, inout bool doReflect, inout bool doShadow) {
+vec4 SDF(vec3 p, float depth, inout bool doReflect) {
 	vec3 dist = vec3(.75, 0., .75);
 	vec3 modp = mod(p, dist) - dist * .5;
 	vec4 pillar = sdfPillar(modp, vec2(.05, .25));
-	vec4 floor = sdfPlane(p, vec4(0., -1., 0., 0.2), depth);
 	vec4 ball = sdfBall(p + ballPos, 0.05);
 
 	doReflect = false;
-	doShadow = false;
-	if(ball.a < pillar.a && ball.a < floor.a) {
+	if(ball.a < pillar.a) {
 		doReflect = true;
 		return ball;
-	} else 
-	if(pillar.a < floor.a) {
-		return pillar - vec4(pillar.rgb * vec3(depth * .04), 0.);
 	} else {
-		doShadow = true;
-		return vec4(floor.rgb - vec3(depth * .04), floor.w);
+		return pillar - vec4(pillar.rgb * vec3(depth * .04), 0.);
 	}
 }
 
@@ -188,36 +192,58 @@ vec3 getNormal(vec3 p) {
     float E = EPSILON;
 	bool b;
     return normalize(vec3(
-        SDF(vec3(p.x + E, p.y, p.z), 0., b, b).a - SDF(vec3(p.x - E, p.y, p.z), 0., b, b).a,
-        SDF(vec3(p.x, p.y + E, p.z), 0., b, b).a - SDF(vec3(p.x, p.y - E, p.z), 0., b, b).a,
-        SDF(vec3(p.x, p.y, p.z + E), 0., b, b).a - SDF(vec3(p.x, p.y, p.z - E), 0., b, b).a
+        SDF(vec3(p.x + E, p.y, p.z), 0., b).a - SDF(vec3(p.x - E, p.y, p.z), 0., b).a,
+        SDF(vec3(p.x, p.y + E, p.z), 0., b).a - SDF(vec3(p.x, p.y - E, p.z), 0., b).a,
+        SDF(vec3(p.x, p.y, p.z + E), 0., b).a - SDF(vec3(p.x, p.y, p.z - E), 0., b).a
     ));
 }
 
 vec4 rayMarch(vec3 eye, vec3 rayDir, float mint, float maxt, inout vec3 refPos, inout vec3 refDir, inout bool doShadow) {
 	float depth = mint;
 
+	vec4 floorData;
 	vec4 data;
+	vec4 floorCol;
 
-    for(int i = 0; i < 3500; i++) {
+	float angleCos = dot(vec3(0., -1., 0.), rayDir);
+	float floorDist;
+
+	bool hit = intersectPlane(vec3(0., 1., 0.), vec3(0., 0.2, 0.), eye, rayDir, floorDist);
+	if(hit) {
+		vec3 p = eye + rayDir * floorDist;
+		floorCol = vec4(floorTexture((eye + rayDir * floorDist).xz) - vec3(length(p.xz * .1)), 1.);
+	}
+	
+	depth = mint;
+
+    for(int i = 0; i < 255; i++) {
 		bool doReflect = false;
-   		data = SDF(eye + rayDir * depth, depth, doReflect, doShadow);
+   		data = SDF(eye + rayDir * depth, depth, doReflect);
 		
 		float dist = data.a;
-        
+
+		if(depth > floorDist + EPSILON && hit) {
+			return floorCol;
+		}
+
         if(dist < EPSILON){
 			if(doReflect) {
 				refPos = eye + rayDir * depth;
 				refDir = reflect(rayDir, getNormal(refPos));
 				//refPos + ballPos));
 			}
-			float light = max(0., dot(getNormal(eye + rayDir * depth), vec3(1., 0., 0.))) * 0.8 + 0.2;	
+			float light = max(0., dot(getNormal(eye + rayDir * depth), vec3(1., 0., 0.))) * 0.8 + 0.2;
+			doShadow = false;
 			return vec4(data.xyz * light, depth);
         }else if(depth >= maxt) {
         	return vec4(vec3(0.), maxt);
         }
-        depth += dist * 1.;// 0.8;
+        depth += dist;// 0.8;
     }
+
+	if(hit) {
+		return floorCol;
+	}
 	
     return vec4(vec3(0.), maxt);
 }
@@ -239,8 +265,10 @@ vec3 shadow(vec3 p) {
 void main() {
 
 	mat3 rot = rotationMatrixY(-iTime * .025 + 0.075);
-	vec3 eye =  rot * vec3(0., 0.12, -2.5) - vec3(0.4, 0., 0.);
-	vec3 rayDir = rotationMatrixX(sin(iTime * 0.5) * 0.05 + 0.012) * rot * vec3(-.05 + uv.x * .1, -.05 + uv.y * .1, 1.0);
+	vec3 eye = rot * 
+	vec3(0., 0.12, -2.5) - vec3(0.4, 0., 0.);
+	vec3 rayDir = rotationMatrixX(sin(iTime * 0.5) * 0.05 + 0.012) * rot *
+	 vec3(-.05 + uv.x * .1, -.05 + uv.y * .1, 1.0);
     
 	vec3 refPos;
 	vec3 refDir;
@@ -279,7 +307,7 @@ void main() {
 		vec4 startFade = mix(
 			vec4(0.),
 			vec4(data.rgb - shadowAmt, 1.),
-			min(1., max(0., iTime - 1.))
+			min(1., max(0., iTime - .5))
 		);
 
 		color =	mix(
@@ -288,7 +316,7 @@ void main() {
 			min(1., max(0., iTime - 29.))
 		);
 
-		//color = hue;
+		//color = vec4(data.rgb - shadowAmt, 1.);
 		//color = vec4(shadow(p), 1.);
 	} else {
 		color = vec4(0., 0., 0., 1.);

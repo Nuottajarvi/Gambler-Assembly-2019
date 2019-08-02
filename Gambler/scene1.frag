@@ -64,7 +64,7 @@ float tiltedSin(float t) {
 void main() {
     // Normalized pixel coordinates (from 0 to 1)
 	
-    float phase1 = 1.;
+    float phase1 = 1.1;
     float phase2 = 28.159;//27.64;
     float phase3 = 40.;
 
@@ -101,7 +101,11 @@ void main() {
 	
 	const float mros = 10.5;
     
-    //PHASE 1
+	float c = 7.5;
+    float a = 10.47;
+	float b = 5.5;
+    
+	//PHASE 1
     if(t < phase1) {
     	h *= smoothstep(0., 1., (t * t) / phase1);
         r += t;
@@ -125,15 +129,14 @@ void main() {
         r = vec2(t);
         
         //middle fast spin
-        float a = 10.35;
-        if(t > a && t < a + 7.5) {
+        if(t > a && t < a + c) {
             float nt = t - a;
-            float speed = -7.5 + nt * .5;
+            float speed = -c + nt * .5;
         	r1 = vec2(speed * nt);
-        } else if(t > 5.35) {
-       		r1 = vec2(5. * (t - 5.35) + 5.35);
-            if(t > a + 7.5) {
-            	r1 = vec2(7.5 * (-7.5 + 7.5 * .5));
+        } else if(t > b) {
+       		r1 = vec2(5. * (t - b) + b);
+            if(t > a + c) {
+            	r1 = vec2(c * (-c + c * .5));
                 //middle rot speed
                 if(t > a + mros) {
                     float mrs = min(t - (a + mros), .5);
@@ -167,12 +170,11 @@ void main() {
             w2.x = w0.x;
             
             //middle rot
-            float a = 10.35;
             float mrs = min(t - (a + mros), .5);
             r.y += mrs*-4.*(t - (a + mros));
             
             r0.x = .2*val - .25;
-            r1 = vec2(7.5 * (-7.5 + 7.5 * .5));
+            r1 = vec2(c * (-c + c * .5));
             r2.x = r0.x;
             
 			//before jump part the width goes to zero
@@ -240,6 +242,8 @@ void main() {
 		col = chip(col, green, uv, pg0, chipM(h*hg, w*wg, r+rg));
 		col = chip(col, green, uv, pg1, chipM(h*hg, w*wg, r+rg));
 	}
+
+	col -= length((uv - 0.5) * .25) * .5;
 
     // Output to screen
     gl_FragColor = vec4(col,1.0);

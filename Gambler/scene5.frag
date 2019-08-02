@@ -17,7 +17,7 @@ vec2 hash( vec2 x ) {
     return -1.0 + 2.0*fract( 16.0 * k*fract( x.x*x.y*(x.x+x.y)) );
 }
 
-float noise2( vec2 p ) {
+float hNoise( vec2 p ) {
     vec2 i = floor( p );
     vec2 f = fract( p );
 	
@@ -36,8 +36,8 @@ float noise(vec2 p)
 
 float smoothNoise(vec2 p)
 {
-    vec2 id = floor(p*1.);
-    vec2 ld = fract(p*1.);
+    vec2 id = floor(p);
+    vec2 ld = fract(p);
     ld = ld*ld*(3.-2.*ld);
     float bl = noise(id);
     float br = noise(id+vec2(1., 0.));
@@ -148,6 +148,20 @@ float rayTrace(vec3 eye, vec3 rayDir, float mint, float dt, float maxt) {
     }
 
 	return 0.;
+
+	float depth = mint;
+    for(int i = 0; i < 64; i++) {
+		vec3 p = eye + rayDir * depth;
+   		float dist = p.y - terrain((eye + rayDir * depth).xz);
+        
+        if(dist < EPSILON){
+ 	      	return depth;
+        }else if(depth >= maxt) {
+        	return 0.;
+        }
+        depth += dist * .1;
+    }
+    return 0.;
 }
 
 vec3 rayMarches() {
@@ -191,7 +205,7 @@ vec3 rayMarches() {
 		vec3 specularDir = reflect(normalize(-light), n);
 		float specular = pow(max(dot(viewDir, specularDir), 0.0), 32.);
 
-		vec3 hue = vec3(.5, .32, .05) - abs(noise2(((bEye + bRayDir * dist) * 20.).xy)) * .15;
+		vec3 hue = vec3(.5, .32, .05) - abs(hNoise(((bEye + bRayDir * dist) * 20.).xy)) * .15;
 
 		return hue * diffuse + specular;
 	} else {
@@ -203,8 +217,8 @@ vec3 rayMarches() {
 		vec3(-.05+uv.x*.1, -.05+uv.y*.1, 1.0);
 		float depth = start;
 
-		const float mint = 0.1f;
-		const float dt = 0.01f;
+		const float mint = 4.f;
+		const float dt = 0.02f;
 		const float maxt = 16.f;
 
 		float d;
@@ -220,13 +234,9 @@ vec3 rayMarches() {
 		vec3 n = getNormalTerrain(ip);
 		float light = max(0., dot(n, light)) * .3 + 0.05;
 	
-		//return vec3(ip.y + .5, ip.x, ip.z);
-		//return n;
+		vec3 tex = vec3(abs(hNoise(mod(ip.xz * 50., vec2(200.)))) * .3 + 0.5);
 
-		//vec3 texture = vec3(mod(ip.x, 1.));
-		vec3 texture = vec3(abs(noise2(mod(ip.xz * 50., vec2(200.)))) * .3 + 0.5);
-
-		return vec3(light * ip.y * 2.) * texture;
+		return vec3(light * ip.y * 2.) * tex;
 	}
 }
 

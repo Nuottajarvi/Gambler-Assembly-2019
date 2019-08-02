@@ -112,6 +112,8 @@ void main() {
 			bgCol = mix(bgCol, vec3(0.8), min(1., (iTime - 9.) * .5)); 
 		}
 
+		bgCol -= length((uv - vec2(1.3, 0.5)) * .25) * .5;
+
 		gl_FragColor = vec4(bgCol, 1.);
 	} else {
 		vec3 col = chip(red, uv);
